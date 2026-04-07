@@ -80,7 +80,7 @@ const LEVEL_DEFS = [
     subtitle: "Dodge the press",
     instruction: "T-shirts and DTF rolls flying at you — dodge them or lose a life. Rings give bonus. Hearts give life!",
     completionScore: 1400,
-    obstacleTypes: ["hoop", "tshirt", "vinyl", "extralife", "missile"],
+    obstacleTypes: ["hoop", "tshirt", "vinyl", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.25,
     baseSpeed: 128, baseGap: 435,
     color: "#ff9f43",
@@ -90,7 +90,7 @@ const LEVEL_DEFS = [
     subtitle: "Survive as long as you can",
     instruction: "All obstacles, full speed. Grab the heart for an extra life. Collect hoops, dodge everything else.",
     completionScore: 1800,
-    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "extralife", "missile"],
+    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "extralife", "missile", "caveshield", "caveburst"],
     baseSpeed: 152, baseGap: 392,
     color: "#ffcc5c",
     verticalMovement: true,
@@ -101,7 +101,7 @@ const LEVEL_DEFS = [
     subtitle: "Nothing stays still",
     instruction: "Maximum speed, moving obstacles, tighter cave. Shoot the drones with your gun! Grab hearts when you can!",
     completionScore: 2500,
-    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "extralife", "missile"],
+    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.3,
     baseSpeed: 185, baseGap: 320,
     color: "#ff4757",
@@ -113,7 +113,7 @@ const LEVEL_DEFS = [
     subtitle: "No mercy. Survive.",
     instruction: "Drones everywhere. Shoot them down or dodge them. Only the best survive the night shift.",
     completionScore: 3500,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "extralife", "missile"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.25,
     baseSpeed: 210, baseGap: 310,
     color: "#a29bfe",
@@ -125,7 +125,7 @@ const LEVEL_DEFS = [
     subtitle: "Beyond the limit.",
     instruction: "Drone swarms and brutal speed. Shoot what you can, dodge the rest. Every heart counts.",
     completionScore: 5000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "extralife", "missile"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.2,
     baseSpeed: 235, baseGap: 295,
     color: "#fd9644",
@@ -137,7 +137,7 @@ const LEVEL_DEFS = [
     subtitle: "This is the end.",
     instruction: "Maximum drone swarms. Shoot everything. Tightest cave. Only the best pilots finish The Final Press.",
     completionScore: 7000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "extralife", "missile"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.18,
     baseSpeed: 260, baseGap: 278,
     color: "#ff2255",
@@ -149,7 +149,7 @@ const LEVEL_DEFS = [
     subtitle: "The cave fights back.",
     instruction: "Tightest gaps yet. Drone swarms hunt you relentlessly. Use your missiles wisely.",
     completionScore: 9000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "extralife", "missile"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.16,
     baseSpeed: 285, baseGap: 260,
     color: "#00e5ff",
@@ -161,7 +161,7 @@ const LEVEL_DEFS = [
     subtitle: "Almost nothing left.",
     instruction: "Barely any room to move. Drones everywhere. Only missiles and instinct will carry you through.",
     completionScore: 11000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "drone", "extralife", "missile"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "drone", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.14,
     baseSpeed: 308, baseGap: 245,
     color: "#bf5fff",
@@ -173,7 +173,7 @@ const LEVEL_DEFS = [
     subtitle: "Only legends reach this.",
     instruction: "The ultimate run. Maximum speed, minimum space. Survive long enough and your name is permanent.",
     completionScore: 14000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "drone", "extralife", "missile"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "drone", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.12,
     baseSpeed: 330, baseGap: 230,
     color: "#ffd700",
@@ -320,10 +320,16 @@ const gameState = {
   missiles:             3,  // stacks across levels; +1 per level start, +1 per boss kill
   caveGunTimer:         0,
   caveShootPressed:     false,
-  heartsSpawnedThisLevel:   0,
-  lastHeartScore:          -9999,
-  missilesSpawnedThisLevel: 0,
-  lastMissileScore:        -9999,
+  caveShield:           0,  // seconds of shield remaining in cave
+  caveBurst:            0,  // seconds of rapid-fire remaining in cave
+  heartsSpawnedThisLevel:    0,
+  lastHeartScore:           -9999,
+  missilesSpawnedThisLevel:  0,
+  lastMissileScore:         -9999,
+  shieldsSpawnedThisLevel:   0,
+  lastShieldScore:          -9999,
+  burstsSpawnedThisLevel:    0,
+  lastBurstScore:           -9999,
 };
 
 // ── STORAGE ───────────────────────────────────────────────────────────────────
@@ -508,6 +514,20 @@ function spawnFloater() {
         gameState.missilesSpawnedThisLevel++;
         gameState.lastMissileScore = gameState.displayedScore;
         type = "missile";
+      } else if (allowed.includes("caveshield")
+          && gameState.shieldsSpawnedThisLevel < 1
+          && gameState.displayedScore - gameState.lastShieldScore >= 900
+          && Math.random() < 0.09) {
+        gameState.shieldsSpawnedThisLevel++;
+        gameState.lastShieldScore = gameState.displayedScore;
+        type = "caveshield";
+      } else if (allowed.includes("caveburst")
+          && gameState.burstsSpawnedThisLevel < 1
+          && gameState.displayedScore - gameState.lastBurstScore >= 900
+          && Math.random() < 0.09) {
+        gameState.burstsSpawnedThisLevel++;
+        gameState.lastBurstScore = gameState.displayedScore;
+        type = "caveburst";
       } else if (gameState.levelIndex === 1) {
         // Level 2: never repeat the same obstacle type back-to-back
         const fresh = nonSpecial.filter(t => t !== gameState.lastSpawnType);
@@ -554,6 +574,10 @@ function spawnFloater() {
     floaters.push({ type, cx, cy, baseCy: cy, vertAmp: droneAmp, vertFreq: droneFreq, w: 28, h: 12, rotation: 0, rotSpeed: 0, phase: Math.random() * Math.PI * 2, collected: false });
   } else if (type === "missile") {
     floaters.push({ type, cx, cy, baseCy: cy, vertAmp: 18, vertFreq: 1.3, w: 36, h: 14, rotation: 0, rotSpeed: 0, phase: Math.random() * Math.PI * 2, collected: false });
+  } else if (type === "caveshield") {
+    floaters.push({ type, cx, cy, baseCy: cy, vertAmp: 22, vertFreq: 1.1, w: 30, h: 30, rotation: 0, rotSpeed: 0.6, phase: Math.random() * Math.PI * 2, collected: false });
+  } else if (type === "caveburst") {
+    floaters.push({ type, cx, cy, baseCy: cy, vertAmp: 22, vertFreq: 1.1, w: 30, h: 30, rotation: 0, rotSpeed: 0.9, phase: Math.random() * Math.PI * 2, collected: false });
   }
 }
 
@@ -643,7 +667,27 @@ function checkFloaterCollisions() {
       continue;
     }
 
-    if (f.type !== "hoop" && f.type !== "extralife" && f.type !== "missile") {
+    if (f.type === "caveshield" && !f.collected) {
+      f.collected = true;
+      gameState.caveShield = 5.0;
+      spawnParticles(f.cx, f.cy, "#50c8ff", 28);
+      spawnParticles(f.cx, f.cy, "#ffffff", 14);
+      scorePopups.push({ x: f.cx, y: f.cy - 18, text: "SHIELD 5s", life: 1.5 });
+      floaters.splice(i, 1);
+      continue;
+    }
+
+    if (f.type === "caveburst" && !f.collected) {
+      f.collected = true;
+      gameState.caveBurst = 5.0;
+      spawnParticles(f.cx, f.cy, "#ffcc33", 28);
+      spawnParticles(f.cx, f.cy, "#ff8800", 14);
+      scorePopups.push({ x: f.cx, y: f.cy - 18, text: "BURST 5s", life: 1.5 });
+      floaters.splice(i, 1);
+      continue;
+    }
+
+    if (f.type !== "hoop" && f.type !== "extralife" && f.type !== "missile" && f.type !== "caveshield" && f.type !== "caveburst") {
       registerHit();
       return;
     }
@@ -744,6 +788,12 @@ function resetGame(fullReset = true) {
   gameState.lastHeartScore           = -9999;
   gameState.missilesSpawnedThisLevel = 0;
   gameState.lastMissileScore         = -9999;
+  gameState.shieldsSpawnedThisLevel  = 0;
+  gameState.lastShieldScore          = -9999;
+  gameState.burstsSpawnedThisLevel   = 0;
+  gameState.lastBurstScore           = -9999;
+  gameState.caveShield = 0;
+  gameState.caveBurst  = 0;
 
   scoreValue.textContent = "0";
   modeValue.textContent  = "Fly";
@@ -762,6 +812,7 @@ function startGame() {
 }
 
 function registerHit() {
+  if (gameState.caveShield > 0) return; // shield absorbs the hit
   if (gameState.lives > 0) {
     gameState.lives        -= 1;
     gameState.hitRecovery  = 1.2;
@@ -932,6 +983,8 @@ function update(delta) {
 
   gameState.safeTime    = Math.max(0, gameState.safeTime - delta);
   gameState.hitRecovery = Math.max(0, gameState.hitRecovery - delta);
+  gameState.caveShield  = Math.max(0, gameState.caveShield - delta);
+  gameState.caveBurst   = Math.max(0, gameState.caveBurst  - delta);
 
   // Floater spawning
   gameState.floaterTimer -= delta;
@@ -950,7 +1003,8 @@ function update(delta) {
     if (gameState.caveShootPressed && gameState.caveGunTimer <= 0 && gameState.missiles > 0) {
       gameState.missiles--;
       caveBullets.push({ x: helicopter.x + 28, y: helicopter.y, phase: Math.random() * Math.PI * 2 });
-      gameState.caveGunTimer = 0.4;
+      const burstMult = gameState.caveBurst > 0 ? 0.16 : 1.0;
+      gameState.caveGunTimer = 0.4 * burstMult;
       updateCaveFireBtn();
     }
     gameState.caveShootPressed = false;
@@ -965,7 +1019,7 @@ function update(delta) {
     // Missiles pierce — check every missile vs every destructible obstacle each frame
     for (let fi = floaters.length - 1; fi >= 0; fi--) {
       const f = floaters[fi];
-      if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.collected) continue;
+      if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.collected) continue;
       for (const m of caveBullets) {
         if (Math.abs(m.x - f.cx) < f.w / 2 + 16 && Math.abs(m.y - f.cy) < f.h / 2 + 16) {
           spawnParticles(f.cx, f.cy, "#ff5500", 32);
@@ -1507,16 +1561,74 @@ function drawMissilePickup(f) {
   ctx.restore();
 }
 
+function drawCaveShieldPickup(f) {
+  ctx.save();
+  ctx.translate(f.cx, f.cy);
+  ctx.rotate(f.rotation);
+  const pulse = 0.7 + 0.3 * Math.sin(f.phase * 3.2);
+  ctx.shadowColor = "#50c8ff";
+  ctx.shadowBlur  = 18 * pulse;
+  // Outer hex ring
+  ctx.strokeStyle = "#50c8ff";
+  ctx.lineWidth   = 2;
+  ctx.globalAlpha = 0.85;
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 - Math.PI / 6;
+    i === 0 ? ctx.moveTo(Math.cos(a)*13, Math.sin(a)*13) : ctx.lineTo(Math.cos(a)*13, Math.sin(a)*13);
+  }
+  ctx.closePath(); ctx.stroke();
+  // Inner shield icon
+  ctx.fillStyle = "rgba(80,200,255,0.18)";
+  ctx.fill();
+  ctx.fillStyle = "#aaeeff";
+  ctx.font = "bold 13px Trebuchet MS";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("🛡", 0, 0);
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+function drawCaveBurstPickup(f) {
+  ctx.save();
+  ctx.translate(f.cx, f.cy);
+  ctx.rotate(f.rotation);
+  const pulse = 0.7 + 0.3 * Math.sin(f.phase * 3.8);
+  ctx.shadowColor = "#ffcc33";
+  ctx.shadowBlur  = 18 * pulse;
+  // Star burst ring
+  ctx.strokeStyle = "#ffcc33";
+  ctx.lineWidth   = 2;
+  ctx.globalAlpha = 0.85;
+  ctx.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    const r = i % 2 === 0 ? 13 : 8;
+    i === 0 ? ctx.moveTo(Math.cos(a)*r, Math.sin(a)*r) : ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+  }
+  ctx.closePath(); ctx.stroke();
+  ctx.fillStyle = "rgba(255,200,40,0.15)";
+  ctx.fill();
+  ctx.fillStyle = "#ffe080";
+  ctx.font = "bold 13px Trebuchet MS";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("⚡", 0, 0);
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
 function drawFloaters() {
   for (const f of floaters) {
     if (f.collected) continue;
-    if      (f.type === "hoop")      drawHoop(f);
-    else if (f.type === "tshirt")    drawTshirt(f);
-    else if (f.type === "vinyl")     drawVinylRoll(f);
-    else if (f.type === "heatpress") drawHeatPress(f);
-    else if (f.type === "extralife") drawExtraLife(f);
-    else if (f.type === "drone")     drawDrone(f);
-    else if (f.type === "missile")   drawMissilePickup(f);
+    if      (f.type === "hoop")        drawHoop(f);
+    else if (f.type === "tshirt")      drawTshirt(f);
+    else if (f.type === "vinyl")       drawVinylRoll(f);
+    else if (f.type === "heatpress")   drawHeatPress(f);
+    else if (f.type === "extralife")   drawExtraLife(f);
+    else if (f.type === "drone")       drawDrone(f);
+    else if (f.type === "missile")     drawMissilePickup(f);
+    else if (f.type === "caveshield")  drawCaveShieldPickup(f);
+    else if (f.type === "caveburst")   drawCaveBurstPickup(f);
   }
 }
 
@@ -1569,6 +1681,32 @@ function drawHelicopter() {
   ctx.ellipse(hx + 4, shadowY, 20, 4, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+
+  // Cave shield aura — blue pulsing ring around helicopter
+  if (gameState.caveShield > 0) {
+    const sp = 0.65 + 0.35 * Math.sin(performance.now() / 120);
+    ctx.save();
+    ctx.strokeStyle = "#50c8ff";
+    ctx.lineWidth   = 3;
+    ctx.globalAlpha = 0.55 + 0.3 * sp;
+    ctx.shadowColor = "#50c8ff";
+    ctx.shadowBlur  = 20;
+    ctx.beginPath(); ctx.arc(hx, hy, 32 + sp * 4, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Cave burst aura — gold lightning ring
+  if (gameState.caveBurst > 0) {
+    const bp = 0.65 + 0.35 * Math.sin(performance.now() / 80);
+    ctx.save();
+    ctx.strokeStyle = "#ffcc33";
+    ctx.lineWidth   = 2.5;
+    ctx.globalAlpha = 0.55 + 0.3 * bp;
+    ctx.shadowColor = "#ffcc33";
+    ctx.shadowBlur  = 22;
+    ctx.beginPath(); ctx.arc(hx, hy, 28 + bp * 5, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
 
   ctx.save();
   ctx.translate(hx, hy);
@@ -3234,7 +3372,8 @@ document.getElementById("btn-swap").addEventListener("pointerdown", (e) => {
 // Pause when clicking anywhere outside the game canvas
 document.addEventListener("pointerdown", (e) => {
   if (e.target === canvas) return;
-  if (e.target.closest("#boss-controls")) return; // d-pad / fire / swap don't pause
+  if (e.target.closest("#boss-controls")) return;  // d-pad / fire / swap don't pause
+  if (e.target.closest("#cave-fire-btn")) return;  // missile button doesn't pause
   if ((gameState.status === "running" || gameState.status === "boss") && !gameState.pausedByBlur) {
     gameState.pausedByBlur = true;
     setThrust(false);
