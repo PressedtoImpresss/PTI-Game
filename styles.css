@@ -558,30 +558,91 @@ tbody tr.raffle {
 
 @media (max-width: 640px) {
   .app-shell {
-    width: min(100% - 20px, 100%);
-    padding-top: 12px;
+    width: 100%;
+    padding: 0;
+    margin: 0;
   }
 
-  .hero-panel,
+  /* Hide everything except the game on mobile */
+  .hero-copy,
   .board-panel,
   .ops-panel {
-    padding: 18px;
-    border-radius: 22px;
+    display: none !important;
   }
 
+  .hero-panel {
+    display: block;
+    padding: 0;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    background: #07101a;
+  }
+
+  .game-card {
+    width: 100%;
+  }
+
+  /* Game frame fills the full viewport */
   .game-frame {
-    padding: 12px;
-    border-radius: 26px;
+    width: 100% !important;
+    max-width: 100% !important;
+    aspect-ratio: auto !important;
+    height: 100svh;
+    padding: 0;
+    border-radius: 0;
+    border: none;
+    background: #07101a;
+  }
+
+  canvas {
+    border-radius: 0;
+    width: 100% !important;
+    height: calc(100svh - 56px) !important; /* leave room for HUD strip */
+  }
+
+  /* HUD strip sits below the canvas, not on top of it */
+  .hud-strip {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    height: 56px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px 6px;
+    border-top: 1px solid rgba(77,217,255,0.12);
+    background: rgba(5,8,14,0.98);
+  }
+
+  .hud-pill {
+    padding: 4px 6px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .hud-pill span {
+    font-size: 0.6rem;
+  }
+
+  .hud-pill strong {
+    font-size: 0.82rem;
+    margin-top: 1px;
   }
 
   .overlay-card {
     padding: 20px;
   }
 
-  .hud-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    left: 22px;
-    right: 22px;
-    bottom: 18px;
+  /* Boss controls sit higher to avoid the HUD bar */
+  .boss-controls {
+    bottom: 66px;
+  }
+
+  .cave-fire-btn {
+    bottom: 100px;
   }
 }
