@@ -90,7 +90,7 @@ const LEVEL_DEFS = [
     subtitle: "Survive as long as you can",
     instruction: "All obstacles, full speed. Grab the heart for an extra life. Collect hoops, dodge everything else.",
     completionScore: 1800,
-    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
     baseSpeed: 152, baseGap: 392,
     color: "#ffcc5c",
     verticalMovement: true,
@@ -101,7 +101,7 @@ const LEVEL_DEFS = [
     subtitle: "Nothing stays still",
     instruction: "Maximum speed, moving obstacles, tighter cave. Shoot the drones with your gun! Grab hearts when you can!",
     completionScore: 2500,
-    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.3,
     baseSpeed: 185, baseGap: 320,
     color: "#ff4757",
@@ -113,7 +113,7 @@ const LEVEL_DEFS = [
     subtitle: "No mercy. Survive.",
     instruction: "Drones everywhere. Shoot them down or dodge them. Only the best survive the night shift.",
     completionScore: 3500,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.25,
     baseSpeed: 210, baseGap: 310,
     color: "#a29bfe",
@@ -125,7 +125,7 @@ const LEVEL_DEFS = [
     subtitle: "Beyond the limit.",
     instruction: "Drone swarms and brutal speed. Shoot what you can, dodge the rest. Every heart counts.",
     completionScore: 5000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.2,
     baseSpeed: 235, baseGap: 295,
     color: "#fd9644",
@@ -137,7 +137,7 @@ const LEVEL_DEFS = [
     subtitle: "This is the end.",
     instruction: "Maximum drone swarms. Shoot everything. Tightest cave. Only the best pilots finish The Final Press.",
     completionScore: 7000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.18,
     baseSpeed: 260, baseGap: 278,
     color: "#ff2255",
@@ -149,7 +149,7 @@ const LEVEL_DEFS = [
     subtitle: "The cave fights back.",
     instruction: "Tightest gaps yet. Drone swarms hunt you relentlessly. Use your missiles wisely.",
     completionScore: 9000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.16,
     baseSpeed: 285, baseGap: 260,
     color: "#00e5ff",
@@ -161,7 +161,7 @@ const LEVEL_DEFS = [
     subtitle: "Almost nothing left.",
     instruction: "Barely any room to move. Drones everywhere. Only missiles and instinct will carry you through.",
     completionScore: 11000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "drone", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.14,
     baseSpeed: 308, baseGap: 245,
     color: "#bf5fff",
@@ -173,7 +173,7 @@ const LEVEL_DEFS = [
     subtitle: "Only legends reach this.",
     instruction: "The ultimate run. Maximum speed, minimum space. Survive long enough and your name is permanent.",
     completionScore: 14000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "drone", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.12,
     baseSpeed: 330, baseGap: 230,
     color: "#ffd700",
@@ -287,6 +287,7 @@ const particles = [];
 
 const scorePopups  = [];
 const caveBullets  = [];
+const burstBullets = []; // free auto-fired energy bolts during burst
 
 // ── LEVEL BANNER ──────────────────────────────────────────────────────────────
 
@@ -322,6 +323,8 @@ const gameState = {
   caveShootPressed:     false,
   caveShield:           0,  // seconds of shield remaining in cave
   caveBurst:            0,  // seconds of rapid-fire remaining in cave
+  caveBurstFireTimer:   0,  // auto-fire timer during burst
+  lastAnySpecialScore: -9999, // prevents multiple specials dropping close together
   heartsSpawnedThisLevel:    0,
   lastHeartScore:           -9999,
   missilesSpawnedThisLevel:  0,
@@ -500,33 +503,43 @@ function spawnFloater() {
       // Missile pickups: up to 4 per level, spaced 400+ score apart, 22% chance
       const missileGap  = 400;
       const missileChance = 0.22;
+      // Global gap — no two specials within 500 score of each other
+      const anySep = gameState.displayedScore - gameState.lastAnySpecialScore >= 500;
       if (allowed.includes("extralife")
           && gameState.heartsSpawnedThisLevel < maxHearts
           && gameState.displayedScore - gameState.lastHeartScore >= heartGap
+          && anySep
           && Math.random() < heartChance) {
         gameState.heartsSpawnedThisLevel++;
         gameState.lastHeartScore = gameState.displayedScore;
+        gameState.lastAnySpecialScore = gameState.displayedScore;
         type = "extralife";
       } else if (allowed.includes("missile")
           && gameState.missilesSpawnedThisLevel < 4
           && gameState.displayedScore - gameState.lastMissileScore >= missileGap
+          && anySep
           && Math.random() < missileChance) {
         gameState.missilesSpawnedThisLevel++;
         gameState.lastMissileScore = gameState.displayedScore;
+        gameState.lastAnySpecialScore = gameState.displayedScore;
         type = "missile";
       } else if (allowed.includes("caveshield")
           && gameState.shieldsSpawnedThisLevel < 1
-          && gameState.displayedScore - gameState.lastShieldScore >= 900
+          && gameState.displayedScore - gameState.lastShieldScore >= 1100
+          && anySep
           && Math.random() < 0.09) {
         gameState.shieldsSpawnedThisLevel++;
         gameState.lastShieldScore = gameState.displayedScore;
+        gameState.lastAnySpecialScore = gameState.displayedScore;
         type = "caveshield";
       } else if (allowed.includes("caveburst")
           && gameState.burstsSpawnedThisLevel < 1
-          && gameState.displayedScore - gameState.lastBurstScore >= 900
+          && gameState.displayedScore - gameState.lastBurstScore >= 1100
+          && anySep
           && Math.random() < 0.09) {
         gameState.burstsSpawnedThisLevel++;
         gameState.lastBurstScore = gameState.displayedScore;
+        gameState.lastAnySpecialScore = gameState.displayedScore;
         type = "caveburst";
       } else if (gameState.levelIndex === 1) {
         // Level 2: never repeat the same obstacle type back-to-back
@@ -574,6 +587,9 @@ function spawnFloater() {
     floaters.push({ type, cx, cy, baseCy: cy, vertAmp: droneAmp, vertFreq: droneFreq, w: 28, h: 12, rotation: 0, rotSpeed: 0, phase: Math.random() * Math.PI * 2, collected: false });
   } else if (type === "missile") {
     floaters.push({ type, cx, cy, baseCy: cy, vertAmp: 18, vertFreq: 1.3, w: 36, h: 14, rotation: 0, rotSpeed: 0, phase: Math.random() * Math.PI * 2, collected: false });
+  } else if (type === "inkblob") {
+    const blobColor = ["#ff2255","#00ccff","#ffcc00","#aa22ff","#ff6600"][Math.floor(Math.random() * 5)];
+    floaters.push({ type, cx, cy, baseCy: cy, vertAmp: 35 + Math.random() * 30, vertFreq: 1.4 + Math.random() * 0.8, w: 40, h: 40, rotation: Math.random() * Math.PI * 2, rotSpeed: (Math.random() - 0.5) * 1.8, phase: Math.random() * Math.PI * 2, color: blobColor, collected: false });
   } else if (type === "caveshield") {
     floaters.push({ type, cx, cy, baseCy: cy, vertAmp: 22, vertFreq: 1.1, w: 30, h: 30, rotation: 0, rotSpeed: 0.6, phase: Math.random() * Math.PI * 2, collected: false });
   } else if (type === "caveburst") {
@@ -754,7 +770,8 @@ function resetGame(fullReset = true) {
   particles.length   = 0;
   smokePuffs.length  = 0;
   scorePopups.length = 0;
-  caveBullets.length = 0;
+  caveBullets.length  = 0;
+  burstBullets.length = 0;
   banner.active      = false;
 
   bossArena = null;
@@ -792,8 +809,10 @@ function resetGame(fullReset = true) {
   gameState.lastShieldScore          = -9999;
   gameState.burstsSpawnedThisLevel   = 0;
   gameState.lastBurstScore           = -9999;
-  gameState.caveShield = 0;
-  gameState.caveBurst  = 0;
+  gameState.caveShield        = 0;
+  gameState.caveBurst         = 0;
+  gameState.caveBurstFireTimer = 0;
+  gameState.lastAnySpecialScore = -9999;
 
   scoreValue.textContent = "0";
   modeValue.textContent  = "Fly";
@@ -1034,6 +1053,38 @@ function update(delta) {
     }
   }
 
+  // ── Burst auto-fire: rapid free energy bolts when burst is active ──
+  if (gameState.caveBurst > 0) {
+    gameState.caveBurstFireTimer -= delta;
+    if (gameState.caveBurstFireTimer <= 0) {
+      burstBullets.push({ x: helicopter.x + 28, y: helicopter.y + (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 20 });
+      gameState.caveBurstFireTimer = 0.055; // ~18 shots/sec
+    }
+  }
+  // Move burst bullets
+  for (let bi = burstBullets.length - 1; bi >= 0; bi--) {
+    burstBullets[bi].x  += 580 * delta;
+    burstBullets[bi].y  += burstBullets[bi].vy * delta;
+    if (burstBullets[bi].x > WORLD_WIDTH + 20) burstBullets.splice(bi, 1);
+  }
+  // Burst bullets destroy all non-special obstacles
+  for (let fi = floaters.length - 1; fi >= 0; fi--) {
+    const f = floaters[fi];
+    if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.collected) continue;
+    for (let bi = burstBullets.length - 1; bi >= 0; bi--) {
+      const b = burstBullets[bi];
+      if (Math.abs(b.x - f.cx) < f.w / 2 + 10 && Math.abs(b.y - f.cy) < f.h / 2 + 10) {
+        spawnParticles(f.cx, f.cy, "#ffcc33", 18);
+        spawnParticles(f.cx, f.cy, "#ff8800", 10);
+        scorePopups.push({ x: f.cx, y: f.cy - 18, text: "+80", life: 1.0 });
+        gameState.bonusScore += 80;
+        burstBullets.splice(bi, 1);
+        floaters.splice(fi, 1);
+        break;
+      }
+    }
+  }
+
   // Score popups float upward and fade
   for (let i = scorePopups.length - 1; i >= 0; i--) {
     scorePopups[i].y    -= 55 * delta;
@@ -1167,6 +1218,7 @@ function drawHoop(f) {
 }
 
 function drawTshirt(f) {
+  // Redrawn as a DTF Transfer Film Sheet — shiny iridescent film with a printed design
   ctx.save();
   ctx.translate(f.cx, f.cy);
   ctx.rotate(f.rotation);
@@ -1174,177 +1226,130 @@ function drawTshirt(f) {
   const w = f.w, h = f.h;
   const hw = w / 2, hh = h / 2;
 
-  // Key layout measurements
-  const shoulderY  = -hh + h * 0.18;  // where shoulders sit
-  const armholeY   = -hh + h * 0.40;  // bottom of armhole / top of body sides
-  const bodyL      = -hw * 0.50;       // body left edge (wide body)
-  const bodyR      =  hw * 0.50;       // body right edge
-  const sleeveOutL = -hw - w * 0.06;   // sleeve tip extends beyond body
-  const sleeveOutR =  hw + w * 0.06;
-  const collarW    =  w * 0.22;        // half-width of collar opening
-  const collarDeep = -hh + h * 0.22;  // how deep collar dips
+  ctx.shadowColor = "#ff6ec7";
+  ctx.shadowBlur  = 18;
 
-  ctx.shadowColor = C.obstGlow;
-  ctx.shadowBlur  = 16;
+  // Film sheet body — slightly translucent with iridescent sheen
+  const filmG = ctx.createLinearGradient(-hw, -hh, hw, hh);
+  filmG.addColorStop(0,    "#ffe8f8");
+  filmG.addColorStop(0.25, "#c8f0ff");
+  filmG.addColorStop(0.5,  "#fff0c0");
+  filmG.addColorStop(0.75, "#e0c8ff");
+  filmG.addColorStop(1,    "#ffe8c8");
+  ctx.fillStyle = filmG;
+  if (ctx.roundRect) {
+    ctx.beginPath(); ctx.roundRect(-hw, -hh, w, h, 4); ctx.fill();
+  } else { ctx.fillRect(-hw, -hh, w, h); }
 
-  // Main fabric gradient — warm orange tones
-  const grad = ctx.createLinearGradient(-hw, -hh, hw * 0.3, hh);
-  grad.addColorStop(0,   "#ffd870");
-  grad.addColorStop(0.45, C.obstFill);
-  grad.addColorStop(1,   "#c85e10");
-  ctx.fillStyle = grad;
-
-  // T-shirt silhouette path — proper T shape
-  const tshirtPath = () => {
-    ctx.beginPath();
-    // Left sleeve — extends outward, angled slightly downward
-    ctx.moveTo(bodyL, shoulderY);                        // left shoulder top
-    ctx.lineTo(sleeveOutL, shoulderY + h * 0.04);        // sleeve tip top
-    ctx.lineTo(sleeveOutL, armholeY - h * 0.02);         // sleeve tip bottom
-    ctx.lineTo(bodyL, armholeY);                          // left armhole bottom
-    // Left body side down to hem
-    ctx.lineTo(bodyL, hh - h * 0.06);
-    ctx.quadraticCurveTo(bodyL, hh, bodyL + w * 0.05, hh); // rounded hem corner
-    // Hem across bottom
-    ctx.lineTo(bodyR - w * 0.05, hh);
-    ctx.quadraticCurveTo(bodyR, hh, bodyR, hh - h * 0.06); // rounded hem corner
-    // Right body side up to armhole
-    ctx.lineTo(bodyR, armholeY);
-    // Right sleeve
-    ctx.lineTo(sleeveOutR, armholeY - h * 0.02);         // sleeve tip bottom
-    ctx.lineTo(sleeveOutR, shoulderY + h * 0.04);         // sleeve tip top
-    ctx.lineTo(bodyR, shoulderY);                         // right shoulder top
-    // Right side of collar
-    ctx.lineTo(collarW, shoulderY);
-    ctx.quadraticCurveTo(collarW * 0.5, collarDeep, 0, collarDeep + h * 0.03); // collar curve
-    ctx.quadraticCurveTo(-collarW * 0.5, collarDeep, -collarW, shoulderY);
-    ctx.closePath();
-  };
-
-  tshirtPath();
-  ctx.fill();
   ctx.shadowBlur = 0;
 
-  // Side shading for fabric depth
-  const shade = ctx.createLinearGradient(-hw, 0, hw, 0);
-  shade.addColorStop(0,    "rgba(0,0,0,0.24)");
-  shade.addColorStop(0.14, "rgba(0,0,0,0)");
-  shade.addColorStop(0.86, "rgba(0,0,0,0)");
-  shade.addColorStop(1,    "rgba(0,0,0,0.20)");
-  ctx.fillStyle = shade;
-  tshirtPath();
-  ctx.fill();
+  // Iridescent shimmer overlay
+  const shimG = ctx.createLinearGradient(-hw, 0, hw, 0);
+  shimG.addColorStop(0,    "rgba(255,255,255,0)");
+  shimG.addColorStop(0.35, "rgba(255,255,255,0.38)");
+  shimG.addColorStop(0.5,  "rgba(255,255,255,0.12)");
+  shimG.addColorStop(1,    "rgba(255,255,255,0)");
+  ctx.fillStyle = shimG;
+  if (ctx.roundRect) {
+    ctx.beginPath(); ctx.roundRect(-hw, -hh, w, h, 4); ctx.fill();
+  } else { ctx.fillRect(-hw, -hh, w, h); }
 
-  // Collar inner shadow
-  ctx.fillStyle = "rgba(0,0,0,0.18)";
-  ctx.beginPath();
-  ctx.ellipse(0, shoulderY + h * 0.01, collarW * 0.95, h * 0.06, 0, 0, Math.PI * 2);
-  ctx.fill();
+  // Film border / edge
+  ctx.strokeStyle = "rgba(180,140,220,0.7)";
+  ctx.lineWidth   = 1.2;
+  if (ctx.roundRect) {
+    ctx.beginPath(); ctx.roundRect(-hw, -hh, w, h, 4); ctx.stroke();
+  } else { ctx.strokeRect(-hw, -hh, w, h); }
 
-  // Armhole crease lines (short stitching marks)
-  ctx.strokeStyle = "rgba(0,0,0,0.16)";
-  ctx.lineWidth   = 1;
-  // Left armhole crease
-  ctx.beginPath();
-  ctx.moveTo(bodyL - w * 0.02, shoulderY + h * 0.08);
-  ctx.quadraticCurveTo(bodyL - w * 0.01, armholeY - h * 0.08, bodyL, armholeY - h * 0.03);
-  ctx.stroke();
-  // Right armhole crease
-  ctx.beginPath();
-  ctx.moveTo(bodyR + w * 0.02, shoulderY + h * 0.08);
-  ctx.quadraticCurveTo(bodyR + w * 0.01, armholeY - h * 0.08, bodyR, armholeY - h * 0.03);
-  ctx.stroke();
+  // Printed design area (simulated CMYK dots pattern)
+  const dotColors = ["#ff2255","#00ccff","#ffcc00","#222222"];
+  for (let di = 0; di < 12; di++) {
+    const dx = -hw + 8 + (di % 4) * (w - 16) / 3;
+    const dy = -hh * 0.3 + Math.floor(di / 4) * hh * 0.35;
+    ctx.fillStyle = dotColors[di % 4];
+    ctx.globalAlpha = 0.55;
+    ctx.beginPath(); ctx.arc(dx, dy, 3, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 
-  // Centre body fold line
-  ctx.strokeStyle = "rgba(0,0,0,0.07)";
-  ctx.lineWidth   = 0.8;
-  ctx.beginPath();
-  ctx.moveTo(0, armholeY + h * 0.08);
-  ctx.lineTo(0, hh - h * 0.1);
-  ctx.stroke();
-
-  // Print area on chest — slightly below collar
-  const printT = armholeY - h * 0.06;
-  const printH = h * 0.30;
-  const printW = (bodyR - bodyL) * 0.58;
-  ctx.fillStyle = "rgba(255,255,255,0.22)";
-  ctx.fillRect(-printW / 2, printT, printW, printH);
-
-  // PTI label
-  ctx.fillStyle    = "rgba(255,255,255,0.92)";
-  ctx.font         = `bold ${Math.floor(h * 0.155)}px Trebuchet MS`;
+  // "PRESS" label — brand identity
+  ctx.fillStyle    = "rgba(80,20,80,0.85)";
+  ctx.font         = `bold ${Math.floor(h * 0.19)}px Trebuchet MS`;
   ctx.textAlign    = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("PTI", 0, printT + printH * 0.52);
+  ctx.fillText("PRESS", 0, hh * 0.45);
   ctx.textBaseline = "alphabetic";
+
+  // Peel corner effect (top-right)
+  ctx.fillStyle = "rgba(255,255,255,0.65)";
+  ctx.beginPath();
+  ctx.moveTo(hw - 10, -hh); ctx.lineTo(hw, -hh); ctx.lineTo(hw, -hh + 10);
+  ctx.closePath(); ctx.fill();
 
   ctx.restore();
 }
 
 function drawVinylRoll(f) {
+  // Redrawn as an Ink Drum — industrial printing ink barrel
   ctx.save();
   ctx.translate(f.cx, f.cy);
   ctx.rotate(f.rotation);
 
-  // Solid cylinder viewed from the side — w = length, h = diameter
   const w = f.w, h = f.h, r = h / 2;
   const rx = w / 2;
 
-  ctx.shadowColor = C.obstGlow;
-  ctx.shadowBlur  = 14;
+  ctx.shadowColor = "#ff6600";
+  ctx.shadowBlur  = 16;
 
-  // ── Cylinder body — top-lit so it reads as round ──
-  const bodyGrad = ctx.createLinearGradient(0, -r, 0, r);
-  bodyGrad.addColorStop(0,    "#ffe888");  // bright highlight (top)
-  bodyGrad.addColorStop(0.25, C.obstFill);
-  bodyGrad.addColorStop(0.7,  "#b85510");
-  bodyGrad.addColorStop(1,    "rgba(0,0,0,0.7)"); // shadow (bottom)
-  ctx.fillStyle = bodyGrad;
+  // Barrel body — dark metallic with ink colour band
+  const bodyG = ctx.createLinearGradient(0, -r, 0, r);
+  bodyG.addColorStop(0,    "#6a6a7a");
+  bodyG.addColorStop(0.2,  "#c0c0cc");
+  bodyG.addColorStop(0.5,  "#8a8a9a");
+  bodyG.addColorStop(0.8,  "#555566");
+  bodyG.addColorStop(1,    "#222230");
+  ctx.fillStyle = bodyG;
   ctx.fillRect(-rx, -r, w, h);
   ctx.shadowBlur = 0;
 
-  // Vertical layer lines to suggest wound material
-  ctx.strokeStyle = "rgba(255,255,255,0.10)";
-  ctx.lineWidth   = 0.7;
-  for (let lx = -rx + 6; lx < rx - 2; lx += 6) {
-    ctx.beginPath(); ctx.moveTo(lx, -r); ctx.lineTo(lx, r); ctx.stroke();
+  // Bright ink colour stripe around middle third
+  const inkColor = ["#ff2255","#00ccff","#ffcc00","#333333","#ff6600"][Math.floor(f.phase * 0.3) % 5];
+  ctx.fillStyle = inkColor;
+  ctx.globalAlpha = 0.82;
+  ctx.fillRect(-rx, -r * 0.28, w, r * 0.56);
+  ctx.globalAlpha = 1;
+
+  // Horizontal barrel rib lines
+  ctx.strokeStyle = "rgba(255,255,255,0.18)";
+  ctx.lineWidth   = 1;
+  for (const ry of [-r * 0.55, -r * 0.15, r * 0.15, r * 0.55]) {
+    ctx.beginPath(); ctx.moveTo(-rx, ry); ctx.lineTo(rx, ry); ctx.stroke();
   }
 
-  // ── End caps — visible on left and right edges ──
+  // End caps (left + right)
   for (const ex of [-rx, rx]) {
-    const sign = ex < 0 ? 1 : -1;
-    // Cap disc
-    const cg = ctx.createRadialGradient(ex + sign * 2, -r * 0.2, 0, ex + sign * 2, 0, r);
-    cg.addColorStop(0,   "#ffe080");
-    cg.addColorStop(0.55, C.obstAlt);
-    cg.addColorStop(1,   "#5a2e00");
-    ctx.fillStyle = cg;
+    const capG = ctx.createRadialGradient(ex, -r * 0.2, 0, ex, 0, r);
+    capG.addColorStop(0,   "#aaaabc");
+    capG.addColorStop(0.6, "#606070");
+    capG.addColorStop(1,   "#1a1a28");
+    ctx.fillStyle = capG;
     ctx.beginPath();
     ctx.ellipse(ex, 0, 7, r, 0, 0, Math.PI * 2);
     ctx.fill();
-    // 4 concentric ring lines (wound layers)
-    for (let ri = 1; ri <= 4; ri++) {
-      ctx.strokeStyle = `rgba(0,0,0,${0.10 + ri * 0.07})`;
-      ctx.lineWidth   = 0.85;
-      ctx.beginPath();
-      ctx.ellipse(ex, 0, 6.5, r * (1 - ri * 0.2), 0, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-    // Cardboard core
-    ctx.fillStyle = "#6b3a10";
-    ctx.beginPath();
-    ctx.ellipse(ex, 0, 3.5, r * 0.28, 0, 0, Math.PI * 2);
-    ctx.fill();
+    // Bolt marks on cap
+    ctx.strokeStyle = "rgba(255,255,255,0.25)";
+    ctx.lineWidth   = 0.8;
+    ctx.beginPath(); ctx.ellipse(ex, 0, 5, r * 0.7, 0, 0, Math.PI * 2); ctx.stroke();
   }
 
-  // ── "DTF" label centred on body ──
-  ctx.fillStyle    = "rgba(255,255,255,0.88)";
-  ctx.font         = `bold ${Math.floor(h * 0.34)}px Trebuchet MS`;
+  // "INK" label
+  ctx.fillStyle    = "rgba(255,255,255,0.92)";
+  ctx.font         = `bold ${Math.floor(h * 0.32)}px Trebuchet MS`;
   ctx.textAlign    = "center";
   ctx.textBaseline = "middle";
-  ctx.shadowColor  = "rgba(0,0,0,0.6)";
-  ctx.shadowBlur   = 3;
-  ctx.fillText("DTF", 0, 0);
+  ctx.shadowColor  = "rgba(0,0,0,0.7)";
+  ctx.shadowBlur   = 4;
+  ctx.fillText("INK", 0, 0);
   ctx.shadowBlur   = 0;
   ctx.textBaseline = "alphabetic";
 
@@ -1561,6 +1566,55 @@ function drawMissilePickup(f) {
   ctx.restore();
 }
 
+function drawInkBlob(f) {
+  ctx.save();
+  ctx.translate(f.cx, f.cy);
+  ctx.rotate(f.rotation);
+
+  const col = f.color || "#ff2255";
+  ctx.shadowColor = col;
+  ctx.shadowBlur  = 16;
+
+  // Organic ink splat — main blob with 6 rounded protrusions
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  const spikes = 7;
+  for (let i = 0; i <= spikes * 2; i++) {
+    const angle = (i / (spikes * 2)) * Math.PI * 2;
+    // Alternate between outer blob radius and inner dip
+    const r = i % 2 === 0 ? 18 + Math.sin(f.phase * 2 + i) * 3 : 11 + Math.sin(f.phase * 3 + i) * 2;
+    const x = Math.cos(angle) * r;
+    const y = Math.sin(angle) * r;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fill();
+
+  // Highlight sheen
+  ctx.shadowBlur = 0;
+  const sG = ctx.createRadialGradient(-5, -6, 1, 0, 0, 18);
+  sG.addColorStop(0,   "rgba(255,255,255,0.42)");
+  sG.addColorStop(0.4, "rgba(255,255,255,0.10)");
+  sG.addColorStop(1,   "rgba(0,0,0,0.18)");
+  ctx.fillStyle = sG;
+  ctx.beginPath();
+  ctx.arc(0, 0, 18, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Small drip drops
+  for (let d = 0; d < 3; d++) {
+    const da = (d / 3) * Math.PI * 2 + f.phase * 0.5;
+    ctx.fillStyle = col;
+    ctx.globalAlpha = 0.7;
+    ctx.beginPath();
+    ctx.arc(Math.cos(da) * 22, Math.sin(da) * 22 + 4, 3 + d, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.restore();
+}
+
 function drawCaveShieldPickup(f) {
   ctx.save();
   ctx.translate(f.cx, f.cy);
@@ -1627,6 +1681,7 @@ function drawFloaters() {
     else if (f.type === "extralife")   drawExtraLife(f);
     else if (f.type === "drone")       drawDrone(f);
     else if (f.type === "missile")     drawMissilePickup(f);
+    else if (f.type === "inkblob")     drawInkBlob(f);
     else if (f.type === "caveshield")  drawCaveShieldPickup(f);
     else if (f.type === "caveburst")   drawCaveBurstPickup(f);
   }
@@ -2128,6 +2183,31 @@ function drawPauseOverlay() {
   ctx.restore();
 }
 
+function drawBurstBullets() {
+  if (burstBullets.length === 0) return;
+  for (const b of burstBullets) {
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    // Glowing gold energy bolt — elongated streak
+    const trailG = ctx.createLinearGradient(-22, 0, 8, 0);
+    trailG.addColorStop(0,   "rgba(255,180,0,0)");
+    trailG.addColorStop(0.6, "rgba(255,220,40,0.6)");
+    trailG.addColorStop(1,   "rgba(255,255,180,0.95)");
+    ctx.fillStyle = trailG;
+    ctx.shadowColor = "#ffcc33"; ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.ellipse(-7, 0, 15, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Bright white core
+    ctx.fillStyle = "#ffffff";
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 5, 1.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
 function drawCaveBullets() {
   if (caveBullets.length === 0) return;
   for (const m of caveBullets) {
@@ -2190,6 +2270,7 @@ function render() {
   drawFloaters();
   drawHelicopter();
   drawCaveBullets();
+  drawBurstBullets();
   drawParticles();
   drawScorePopups();
   drawBanner();
