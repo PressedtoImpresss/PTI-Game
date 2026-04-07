@@ -1100,6 +1100,7 @@ function update(delta) {
 
   modeValue.textContent = helicopter.thrusting ? "Boost" : "Glide";
   updateCaveFireBtn();
+  updatePauseBtn();
 }
 
 // ── DRAW: BACKGROUND ─────────────────────────────────────────────────────────
@@ -1184,35 +1185,72 @@ function drawCave() {
 // ── DRAW: FLOATERS ────────────────────────────────────────────────────────────
 
 function drawHoop(f) {
+  // Golden coin
   ctx.save();
   ctx.translate(f.cx, f.cy);
+  const r = f.radius;
 
-  // Outer radial glow
-  const glow = ctx.createRadialGradient(0, 0, f.radius * 0.5, 0, 0, f.radius * 1.5);
-  glow.addColorStop(0,   "rgba(201,168,76,0)");
-  glow.addColorStop(0.5, "rgba(201,168,76,0.12)");
-  glow.addColorStop(1,   "rgba(201,168,76,0)");
-  ctx.fillStyle = glow;
+  // Outer glow pulse
+  const pulse = 0.75 + 0.25 * Math.sin(f.phase * 2.8);
+  ctx.shadowColor = "#ffd700";
+  ctx.shadowBlur  = 20 * pulse;
+
+  // Coin edge — slightly taller ellipse to give 3D thickness illusion
+  ctx.fillStyle = "#a06800";
   ctx.beginPath();
-  ctx.arc(0, 0, f.radius * 1.5, 0, Math.PI * 2);
+  ctx.ellipse(0, r * 0.12, r, r * 0.18, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Main ring
-  ctx.shadowColor = C.hoopStroke;
-  ctx.shadowBlur  = 18;
-  ctx.strokeStyle = C.hoopStroke;
-  ctx.lineWidth   = 5;
+  // Main coin face — gold radial gradient
+  const coinG = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 0, 0, 0, r);
+  coinG.addColorStop(0,    "#fff0a0");
+  coinG.addColorStop(0.25, "#ffd700");
+  coinG.addColorStop(0.6,  "#c9a84c");
+  coinG.addColorStop(1,    "#7a5800");
+  ctx.fillStyle = coinG;
   ctx.beginPath();
-  ctx.arc(0, 0, f.radius, 0, Math.PI * 2);
-  ctx.stroke();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Inner shimmer
+  // Rim edge ring
   ctx.shadowBlur  = 0;
-  ctx.strokeStyle = "rgba(255,255,255,0.35)";
+  ctx.strokeStyle = "#a06800";
   ctx.lineWidth   = 1.5;
   ctx.beginPath();
-  ctx.arc(0, 0, f.radius * 0.82, 0, Math.PI * 2);
+  ctx.arc(0, 0, r - 1, 0, Math.PI * 2);
   ctx.stroke();
+
+  // Knurled edge marks (short tick lines around perimeter)
+  ctx.strokeStyle = "rgba(100,60,0,0.4)";
+  ctx.lineWidth   = 1;
+  const ticks = 18;
+  for (let i = 0; i < ticks; i++) {
+    const a = (i / ticks) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * (r - 2.5), Math.sin(a) * (r - 2.5));
+    ctx.lineTo(Math.cos(a) * (r - 0.5), Math.sin(a) * (r - 0.5));
+    ctx.stroke();
+  }
+
+  // Inner embossed circle
+  ctx.strokeStyle = "rgba(255,240,120,0.5)";
+  ctx.lineWidth   = 1;
+  ctx.beginPath();
+  ctx.arc(0, 0, r * 0.62, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // "$" symbol in centre
+  ctx.fillStyle    = "rgba(120,70,0,0.75)";
+  ctx.font         = `bold ${Math.round(r * 0.85)}px Trebuchet MS`;
+  ctx.textAlign    = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("$", 0, 0);
+
+  // Highlight glint (top-left)
+  ctx.fillStyle = "rgba(255,255,255,0.45)";
+  ctx.beginPath();
+  ctx.ellipse(-r * 0.28, -r * 0.32, r * 0.28, r * 0.14, -0.5, 0, Math.PI * 2);
+  ctx.fill();
 
   ctx.restore();
 }
@@ -2148,18 +2186,7 @@ function drawHoopCounter() {
   ctx.textBaseline = "top";
   ctx.shadowColor  = C.hoopStroke;
   ctx.shadowBlur   = 8;
-  ctx.fillText(`⬡ ×${gameState.hoopsCollected}`, WORLD_WIDTH - 16, 36);
-  ctx.restore();
-
-  // Missile count
-  ctx.save();
-  const misCol = gameState.missiles > 0 ? "#ffa030" : "rgba(255,255,255,0.25)";
-  ctx.fillStyle    = misCol;
-  ctx.font         = "bold 12px Trebuchet MS";
-  ctx.textAlign    = "right";
-  ctx.textBaseline = "top";
-  ctx.shadowColor  = misCol; ctx.shadowBlur = 8;
-  ctx.fillText(`🚀 ×${gameState.missiles}`, WORLD_WIDTH - 16, 52);
+  ctx.fillText(`🪙 ×${gameState.hoopsCollected}`, WORLD_WIDTH - 16, 36);
   ctx.restore();
 }
 
@@ -2334,6 +2361,7 @@ function initBossArena(bossIndex) {
 
 function updateBossArena(delta) {
   if (!bossArena) return;
+  updatePauseBtn();
   if (gameState.pausedByBlur) return; // pause support in boss fights
   const A = bossArena;
 
@@ -3394,6 +3422,25 @@ function updateCaveFireBtn() {
   }
 }
 
+const pauseBtn = document.getElementById("pause-btn");
+
+function updatePauseBtn() {
+  const active = gameState.status === "running" || gameState.status === "boss";
+  pauseBtn.classList.toggle("hidden", !active);
+  pauseBtn.textContent = gameState.pausedByBlur ? "▶" : "⏸";
+}
+
+pauseBtn.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (gameState.status === "running" || gameState.status === "boss") {
+    gameState.pausedByBlur = !gameState.pausedByBlur;
+    if (!gameState.pausedByBlur) lastFrame = performance.now();
+    setThrust(false);
+    updatePauseBtn();
+  }
+});
+
 canvas.addEventListener("pointerdown", (e) => {
   e.preventDefault();
   if (gameState.pausedByBlur && (gameState.status === "running" || gameState.status === "boss")) {
@@ -3455,6 +3502,7 @@ document.addEventListener("pointerdown", (e) => {
   if (e.target === canvas) return;
   if (e.target.closest("#boss-controls")) return;  // d-pad / fire / swap don't pause
   if (e.target.closest("#cave-fire-btn")) return;  // missile button doesn't pause
+  if (e.target.closest("#pause-btn"))     return;  // pause button handles itself
   if ((gameState.status === "running" || gameState.status === "boss") && !gameState.pausedByBlur) {
     gameState.pausedByBlur = true;
     setThrust(false);
