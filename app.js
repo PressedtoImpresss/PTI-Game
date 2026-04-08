@@ -2406,6 +2406,20 @@ function updateBossArena(delta) {
   if (bossKeys["ArrowUp"]    || bossKeys["w"] || bossKeys["W"]) A.player.vy = -PSPEED;
   if (bossKeys["ArrowDown"]  || bossKeys["s"] || bossKeys["S"]) A.player.vy =  PSPEED;
   const pw = 20, ph = 18;
+
+  // Touch/drag movement — finger directly steers the helicopter
+  if (A.touchActive && A.touchTarget && A.phase === "fight") {
+    const tdx = A.touchTarget.x - A.player.x;
+    const tdy = A.touchTarget.y - A.player.y;
+    const tdist = Math.hypot(tdx, tdy);
+    if (tdist > 3) {
+      const spd = PSPEED * 1.6 * delta;
+      const ease = Math.min(1, tdist / 25); // ease in when nearly there
+      A.player.vx = (tdx / tdist) * PSPEED * ease;
+      A.player.vy = (tdy / tdist) * PSPEED * ease;
+    }
+  }
+
   A.player.x = clamp(A.player.x + A.player.vx * delta, pw, WORLD_WIDTH - pw - 12);
   A.player.y = clamp(A.player.y + A.player.vy * delta, ph + 24, WORLD_HEIGHT - ph - 85);
 
@@ -3427,7 +3441,7 @@ const pauseBtn = document.getElementById("pause-btn");
 function updatePauseBtn() {
   const active = gameState.status === "running" || gameState.status === "boss";
   pauseBtn.classList.toggle("hidden", !active);
-  pauseBtn.textContent = gameState.pausedByBlur ? "▶" : "⏸";
+  pauseBtn.textContent = gameState.pausedByBlur ? "▶️" : "⏸️";
 }
 
 pauseBtn.addEventListener("pointerdown", (e) => {
@@ -3441,17 +3455,50 @@ pauseBtn.addEventListener("pointerdown", (e) => {
   }
 });
 
+// Map a pointer event to canvas pixel coordinates
+function canvasCoords(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (WORLD_WIDTH  / rect.width),
+    y: (e.clientY - rect.top)  * (WORLD_HEIGHT / rect.height),
+  };
+}
+
 canvas.addEventListener("pointerdown", (e) => {
   e.preventDefault();
   if (gameState.pausedByBlur && (gameState.status === "running" || gameState.status === "boss")) {
     gameState.pausedByBlur = false;
     lastFrame = performance.now();
-    return; // don't fire/thrust on the same tap that resumes
+    return; // don't fire/thrust on same tap that resumes
+  }
+  if (gameState.status === "boss" && bossArena) {
+    const c = canvasCoords(e);
+    bossArena.touchActive = true;
+    bossArena.touchTarget = c;
+    canvas.setPointerCapture(e.pointerId);
+    return;
   }
   setThrust(true);
 });
-canvas.addEventListener("pointerup",   ()  => setThrust(false));
-canvas.addEventListener("pointerleave",()  => setThrust(false));
+
+canvas.addEventListener("pointermove", (e) => {
+  if (gameState.status === "boss" && bossArena && bossArena.touchActive) {
+    bossArena.touchTarget = canvasCoords(e);
+  }
+});
+
+canvas.addEventListener("pointerup",   (e) => {
+  if (bossArena) { bossArena.touchActive = false; bossArena.touchTarget = null; }
+  setThrust(false);
+});
+canvas.addEventListener("pointerleave",(e) => {
+  if (bossArena) { bossArena.touchActive = false; bossArena.touchTarget = null; }
+  setThrust(false);
+});
+canvas.addEventListener("pointercancel",(e) => {
+  if (bossArena) { bossArena.touchActive = false; bossArena.touchTarget = null; }
+  setThrust(false);
+});
 window.addEventListener("pointerup",   ()  => setThrust(false));
 
 window.addEventListener("keydown", (e) => {
@@ -3502,7 +3549,7 @@ document.addEventListener("pointerdown", (e) => {
   if (e.target === canvas) return;
   if (e.target.closest("#boss-controls")) return;  // d-pad / fire / swap don't pause
   if (e.target.closest("#cave-fire-btn")) return;  // missile button doesn't pause
-  if (e.target.closest("#pause-btn"))     return;  // pause button handles itself
+  if (e.target.closest("#pause-btn"))      return;  // pause button handles itself
   if ((gameState.status === "running" || gameState.status === "boss") && !gameState.pausedByBlur) {
     gameState.pausedByBlur = true;
     setThrust(false);

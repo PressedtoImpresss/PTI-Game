@@ -515,17 +515,15 @@ tbody tr.raffle {
   border-color: rgba(255, 200, 80, 0.8);
 }
 
-/* ── Pause button ──────────────────────────────────────── */
-.pause-btn {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 6;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: rgba(7, 16, 24, 0.78);
-  border: 1.5px solid rgba(77, 217, 255, 0.4);
+/* ── Pause button — lives in the HUD strip ─────────────── */
+.pause-btn-pill {
+  min-width: 0;
+  flex-shrink: 0;
+  width: 44px;
+  padding: 10px 6px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(18,18,18,0.96), rgba(5,5,5,0.98));
+  border: 1px solid rgba(77, 217, 255, 0.35);
   color: rgba(255, 255, 255, 0.88);
   font-size: 16px;
   cursor: pointer;
@@ -535,13 +533,11 @@ tbody tr.raffle {
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(4px);
-  transition: background 120ms, border-color 120ms;
 }
 
-.pause-btn:active {
-  background: rgba(77, 217, 255, 0.22);
-  border-color: rgba(77, 217, 255, 0.8);
+.pause-btn-pill:active {
+  background: rgba(77, 217, 255, 0.18);
+  border-color: rgba(77, 217, 255, 0.75);
 }
 
 /* ── Cave gun fire button ───────────────────────────────── */
