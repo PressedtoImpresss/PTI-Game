@@ -1717,17 +1717,17 @@ function drawRock(f) {
   const { cx, cy, w, h, fromTop, jitterPts } = f;
   const left  = cx - w / 2;
   const right = cx + w / 2;
-  const wallY = fromTop ? cy - h / 2 : cy + h / 2;
-  const tipY  = fromTop ? cy + h / 2 : cy - h / 2;
+  const wallY = fromTop ? cy - h / 2 : cy + h / 2; // attached to cave wall
+  const tipY  = fromTop ? cy + h / 2 : cy - h / 2; // jagger edge into the gap
   const cols  = jitterPts ? jitterPts.length - 1 : 7;
+  const lvColor = LEVEL_DEFS[gameState.levelIndex]?.color || "#4dd9ff";
 
-  // Build jagged tip profile using pre-baked jitter
+  // Build jagged tip profile
   const pts = [];
   for (let i = 0; i <= cols; i++) {
     const t  = i / cols;
     const px = left + t * w;
-    const jitter = jitterPts ? jitterPts[i] : 0;
-    pts.push({ x: px, y: tipY + jitter });
+    pts.push({ x: px, y: tipY + (jitterPts ? jitterPts[i] : 0) });
   }
 
   ctx.save();
@@ -1737,29 +1737,41 @@ function drawRock(f) {
   ctx.lineTo(right, wallY);
   ctx.closePath();
 
-  const grad = ctx.createLinearGradient(cx, fromTop ? wallY : tipY, cx, fromTop ? tipY : wallY);
-  grad.addColorStop(0,    "#18131f");
-  grad.addColorStop(0.4,  "#2b2038");
-  grad.addColorStop(0.75, "#382c48");
-  grad.addColorStop(1,    "#1e1828");
+  // Same gradient direction as the cave wall it grows from
+  const g0 = fromTop ? wallY : tipY;
+  const g1 = fromTop ? tipY  : wallY;
+  const grad = ctx.createLinearGradient(0, g0, 0, g1);
+  if (fromTop) {
+    grad.addColorStop(0,   C.wallDark);
+    grad.addColorStop(0.6, C.wallMid);
+    grad.addColorStop(1,   C.wallLight);
+  } else {
+    grad.addColorStop(0,   C.wallLight);
+    grad.addColorStop(0.4, C.wallMid);
+    grad.addColorStop(1,   C.wallDark);
+  }
   ctx.fillStyle = grad;
   ctx.fill();
 
-  ctx.strokeStyle = "rgba(180,140,255,0.22)";
-  ctx.lineWidth   = 1.5;
-  ctx.stroke();
-
-  // Static crack lines between tip points
-  ctx.strokeStyle = "rgba(0,0,0,0.5)";
-  ctx.lineWidth   = 1;
-  for (let i = 1; i < cols; i++) {
-    const p = pts[i];
-    const crackDir = fromTop ? 1 : -1;
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-    ctx.lineTo(p.x + (i % 2 === 0 ? 4 : -5), p.y + crackDir * h * 0.16);
-    ctx.stroke();
+  // Scan lines — same texture as cave walls
+  ctx.fillStyle = "rgba(0,0,0,0.07)";
+  const scanStep = 11;
+  const yMin = Math.min(wallY, tipY);
+  const yMax = Math.max(wallY, tipY);
+  for (let y = yMin + 3; y < yMax - 2; y += scanStep) {
+    ctx.fillRect(left, y, w, 2);
   }
+
+  // Bright level-coloured glow strip along the jagged tip edge — same as cave edge strips
+  ctx.shadowColor = lvColor;
+  ctx.shadowBlur  = 8;
+  ctx.strokeStyle = lvColor + "cc";
+  ctx.lineWidth   = 3;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i <= cols; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
 
   ctx.restore();
 }
