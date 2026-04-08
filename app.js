@@ -2407,16 +2407,16 @@ function updateBossArena(delta) {
   if (bossKeys["ArrowDown"]  || bossKeys["s"] || bossKeys["S"]) A.player.vy =  PSPEED;
   const pw = 20, ph = 18;
 
-  // Touch/drag movement — finger directly steers the helicopter
-  if (A.touchActive && A.touchTarget && A.phase === "fight") {
-    const tdx = A.touchTarget.x - A.player.x;
-    const tdy = A.touchTarget.y - A.player.y;
-    const tdist = Math.hypot(tdx, tdy);
-    if (tdist > 3) {
-      const spd = PSPEED * 1.6 * delta;
-      const ease = Math.min(1, tdist / 25); // ease in when nearly there
-      A.player.vx = (tdx / tdist) * PSPEED * ease;
-      A.player.vy = (tdy / tdist) * PSPEED * ease;
+  // Virtual joystick — anchor is where finger touched down, joyPos is current
+  if (A.touchActive && A.joyAnchor && A.joyPos) {
+    const JOY_RADIUS = 52; // canvas pixels — how far to push for full speed
+    const jdx = A.joyPos.x - A.joyAnchor.x;
+    const jdy = A.joyPos.y - A.joyAnchor.y;
+    const jdist = Math.hypot(jdx, jdy);
+    if (jdist > 4) {
+      const ratio = Math.min(1, jdist / JOY_RADIUS);
+      A.player.vx = (jdx / jdist) * PSPEED * ratio;
+      A.player.vy = (jdy / jdist) * PSPEED * ratio;
     }
   }
 
@@ -2676,7 +2676,49 @@ function renderBossArena() {
 
   drawScorePopups();
   drawBossPhaseText(A);
+  drawBossJoystick(A);
   if (gameState.pausedByBlur) drawPauseOverlay();
+}
+
+function drawBossJoystick(A) {
+  if (!A || !A.touchActive || !A.joyAnchor || !A.joyPos) return;
+  const JOY_RADIUS = 52;
+  const ax = A.joyAnchor.x, ay = A.joyAnchor.y;
+  // Clamp stick position to joystick radius
+  const dx = A.joyPos.x - ax, dy = A.joyPos.y - ay;
+  const dist = Math.hypot(dx, dy);
+  const clampedDist = Math.min(dist, JOY_RADIUS);
+  const sx = dist > 0 ? ax + (dx / dist) * clampedDist : ax;
+  const sy = dist > 0 ? ay + (dy / dist) * clampedDist : ay;
+
+  ctx.save();
+  // Outer ring
+  ctx.strokeStyle = "rgba(77,217,255,0.45)";
+  ctx.lineWidth   = 2;
+  ctx.fillStyle   = "rgba(77,217,255,0.07)";
+  ctx.beginPath(); ctx.arc(ax, ay, JOY_RADIUS, 0, Math.PI * 2);
+  ctx.fill(); ctx.stroke();
+
+  // Direction line
+  ctx.strokeStyle = "rgba(77,217,255,0.3)";
+  ctx.lineWidth   = 1.5;
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(sx, sy); ctx.stroke();
+
+  // Inner knob
+  const knobG = ctx.createRadialGradient(sx - 4, sy - 4, 1, sx, sy, 18);
+  knobG.addColorStop(0,   "rgba(120,230,255,0.95)");
+  knobG.addColorStop(0.5, "rgba(77,217,255,0.75)");
+  knobG.addColorStop(1,   "rgba(20,100,160,0.60)");
+  ctx.fillStyle   = knobG;
+  ctx.shadowColor = "#4dd9ff";
+  ctx.shadowBlur  = 12;
+  ctx.beginPath(); ctx.arc(sx, sy, 18, 0, Math.PI * 2); ctx.fill();
+
+  // Centre dot on anchor
+  ctx.shadowBlur  = 0;
+  ctx.fillStyle   = "rgba(77,217,255,0.4)";
+  ctx.beginPath(); ctx.arc(ax, ay, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
 }
 
 function drawBossHud(A) {
@@ -3469,12 +3511,13 @@ canvas.addEventListener("pointerdown", (e) => {
   if (gameState.pausedByBlur && (gameState.status === "running" || gameState.status === "boss")) {
     gameState.pausedByBlur = false;
     lastFrame = performance.now();
-    return; // don't fire/thrust on same tap that resumes
+    return;
   }
   if (gameState.status === "boss" && bossArena) {
     const c = canvasCoords(e);
+    bossArena.joyAnchor   = { x: c.x, y: c.y };
+    bossArena.joyPos      = { x: c.x, y: c.y };
     bossArena.touchActive = true;
-    bossArena.touchTarget = c;
     canvas.setPointerCapture(e.pointerId);
     return;
   }
@@ -3483,23 +3526,21 @@ canvas.addEventListener("pointerdown", (e) => {
 
 canvas.addEventListener("pointermove", (e) => {
   if (gameState.status === "boss" && bossArena && bossArena.touchActive) {
-    bossArena.touchTarget = canvasCoords(e);
+    bossArena.joyPos = canvasCoords(e);
   }
 });
 
-canvas.addEventListener("pointerup",   (e) => {
-  if (bossArena) { bossArena.touchActive = false; bossArena.touchTarget = null; }
-  setThrust(false);
-});
-canvas.addEventListener("pointerleave",(e) => {
-  if (bossArena) { bossArena.touchActive = false; bossArena.touchTarget = null; }
-  setThrust(false);
-});
-canvas.addEventListener("pointercancel",(e) => {
-  if (bossArena) { bossArena.touchActive = false; bossArena.touchTarget = null; }
-  setThrust(false);
-});
-window.addEventListener("pointerup",   ()  => setThrust(false));
+function clearBossTouch() {
+  if (bossArena) {
+    bossArena.touchActive = false;
+    bossArena.joyAnchor   = null;
+    bossArena.joyPos      = null;
+  }
+}
+canvas.addEventListener("pointerup",     () => { clearBossTouch(); setThrust(false); });
+canvas.addEventListener("pointerleave",  () => { clearBossTouch(); setThrust(false); });
+canvas.addEventListener("pointercancel", () => { clearBossTouch(); setThrust(false); });
+window.addEventListener("pointerup",     () => setThrust(false));
 
 window.addEventListener("keydown", (e) => {
   if (gameState.status === "boss") { bossKeys[e.key] = true; e.preventDefault(); return; }
@@ -3523,8 +3564,9 @@ document.getElementById("boss-ready-btn").addEventListener("click", () => {
   gameState.status = "boss";
   initBossArena(bossIndex);
   document.getElementById("boss-controls").classList.remove("hidden");
-  // Only show SWAP when there are multiple weapons to cycle
   document.getElementById("btn-swap").classList.toggle("hidden", bossArena.weapons.length <= 1);
+  updateCaveFireBtn();  // ensure missile button is hidden during boss fight
+  updatePauseBtn();
 });
 
 // D-pad + fire touch controls for boss fight
