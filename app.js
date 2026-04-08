@@ -37,7 +37,7 @@ const C = {
 const canvas             = document.getElementById("game-canvas");
 const ctx                = canvas.getContext("2d");
 const scoreValue         = document.getElementById("score-value");
-const modeValue          = document.getElementById("mode-value");
+// modeValue removed — Mode pill deleted from HUD
 const lifeValue          = document.getElementById("life-value");
 const bestValue          = document.getElementById("best-value");
 const missilesValue      = document.getElementById("missiles-value");
@@ -80,8 +80,8 @@ const LEVEL_DEFS = [
     subtitle: "Dodge the press",
     instruction: "T-shirts and DTF rolls flying at you — dodge them or lose a life. Rings give bonus. Hearts give life!",
     completionScore: 1400,
-    obstacleTypes: ["hoop", "tshirt", "vinyl", "extralife", "missile", "caveshield", "caveburst"],
-    hoopWeight: 0.25,
+    obstacleTypes: ["hoop", "tshirt", "tshirt", "vinyl", "inkblob", "heatpress", "drone", "extralife", "missile", "caveshield"],
+    hoopWeight: 0.15,
     baseSpeed: 128, baseGap: 435,
     color: "#ff9f43",
   },
@@ -90,7 +90,7 @@ const LEVEL_DEFS = [
     subtitle: "Survive as long as you can",
     instruction: "All obstacles, full speed. Grab the heart for an extra life. Collect hoops, dodge everything else.",
     completionScore: 1800,
-    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "inkblob", "rock", "extralife", "missile", "caveshield", "caveburst"],
     baseSpeed: 152, baseGap: 392,
     color: "#ffcc5c",
     verticalMovement: true,
@@ -101,7 +101,7 @@ const LEVEL_DEFS = [
     subtitle: "Nothing stays still",
     instruction: "Maximum speed, moving obstacles, tighter cave. Shoot the drones with your gun! Grab hearts when you can!",
     completionScore: 2500,
-    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.3,
     baseSpeed: 185, baseGap: 320,
     color: "#ff4757",
@@ -113,7 +113,7 @@ const LEVEL_DEFS = [
     subtitle: "No mercy. Survive.",
     instruction: "Drones everywhere. Shoot them down or dodge them. Only the best survive the night shift.",
     completionScore: 3500,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.25,
     baseSpeed: 210, baseGap: 310,
     color: "#a29bfe",
@@ -125,7 +125,7 @@ const LEVEL_DEFS = [
     subtitle: "Beyond the limit.",
     instruction: "Drone swarms and brutal speed. Shoot what you can, dodge the rest. Every heart counts.",
     completionScore: 5000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.2,
     baseSpeed: 235, baseGap: 295,
     color: "#fd9644",
@@ -137,7 +137,7 @@ const LEVEL_DEFS = [
     subtitle: "This is the end.",
     instruction: "Maximum drone swarms. Shoot everything. Tightest cave. Only the best pilots finish The Final Press.",
     completionScore: 7000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.18,
     baseSpeed: 260, baseGap: 278,
     color: "#ff2255",
@@ -149,7 +149,7 @@ const LEVEL_DEFS = [
     subtitle: "The cave fights back.",
     instruction: "Tightest gaps yet. Drone swarms hunt you relentlessly. Use your missiles wisely.",
     completionScore: 9000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.16,
     baseSpeed: 285, baseGap: 260,
     color: "#00e5ff",
@@ -161,7 +161,7 @@ const LEVEL_DEFS = [
     subtitle: "Almost nothing left.",
     instruction: "Barely any room to move. Drones everywhere. Only missiles and instinct will carry you through.",
     completionScore: 11000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.14,
     baseSpeed: 308, baseGap: 245,
     color: "#bf5fff",
@@ -173,7 +173,7 @@ const LEVEL_DEFS = [
     subtitle: "Only legends reach this.",
     instruction: "The ultimate run. Maximum speed, minimum space. Survive long enough and your name is permanent.",
     completionScore: 14000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.12,
     baseSpeed: 330, baseGap: 230,
     color: "#ffd700",
@@ -594,6 +594,21 @@ function spawnFloater() {
     floaters.push({ type, cx, cy, baseCy: cy, vertAmp: 22, vertFreq: 1.1, w: 30, h: 30, rotation: 0, rotSpeed: 0.6, phase: Math.random() * Math.PI * 2, collected: false });
   } else if (type === "caveburst") {
     floaters.push({ type, cx, cy, baseCy: cy, vertAmp: 22, vertFreq: 1.1, w: 30, h: 30, rotation: 0, rotSpeed: 0.9, phase: Math.random() * Math.PI * 2, collected: false });
+  } else if (type === "rock") {
+    const fromTop = Math.random() < 0.5;
+    const caveH = b.floor - b.ceiling;
+    const maxRockH = Math.max(0, caveH - 72);
+    if (maxRockH < 30) return;
+    const rockH = maxRockH * (0.52 + Math.random() * 0.15);
+    const rockW = 88 + Math.random() * 38;
+    const rockCy = fromTop ? b.ceiling + rockH / 2 : b.floor - rockH / 2;
+    // Pre-bake jagged profile (7 tip points) so shape is stable each frame
+    const cols = 7;
+    const jitterPts = [];
+    for (let i = 0; i <= cols; i++) {
+      jitterPts.push((i === 0 || i === cols) ? 0 : (Math.random() - 0.5) * rockH * 0.38);
+    }
+    floaters.push({ type, cx, cy: rockCy, baseCy: rockCy, vertAmp: 0, vertFreq: 0, w: rockW, h: rockH, rotation: 0, rotSpeed: 0, phase: 0, fromTop, jitterPts, collected: false });
   }
 }
 
@@ -815,7 +830,6 @@ function resetGame(fullReset = true) {
   gameState.lastAnySpecialScore = -9999;
 
   scoreValue.textContent = "0";
-  modeValue.textContent  = "Fly";
   lifeValue.textContent  = String(gameState.lives);
 
   resetCave();
@@ -937,7 +951,6 @@ function getFallbackComment(score) {
 function setThrust(active) {
   if (gameState.status === "idle" && active) startGame();
   helicopter.thrusting = active && gameState.status === "running";
-  modeValue.textContent = helicopter.thrusting ? "Boost" : "Glide";
 }
 
 // ── MAIN UPDATE ───────────────────────────────────────────────────────────────
@@ -1039,7 +1052,7 @@ function update(delta) {
     // Missiles pierce — check every missile vs every destructible obstacle each frame
     for (let fi = floaters.length - 1; fi >= 0; fi--) {
       const f = floaters[fi];
-      if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.collected) continue;
+      if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.type === "rock" || f.collected) continue;
       for (const m of caveBullets) {
         if (Math.abs(m.x - f.cx) < f.w / 2 + 16 && Math.abs(m.y - f.cy) < f.h / 2 + 16) {
           spawnParticles(f.cx, f.cy, "#ff5500", 32);
@@ -1071,7 +1084,7 @@ function update(delta) {
   // Burst bullets destroy all non-special obstacles
   for (let fi = floaters.length - 1; fi >= 0; fi--) {
     const f = floaters[fi];
-    if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.collected) continue;
+    if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.type === "rock" || f.collected) continue;
     for (let bi = burstBullets.length - 1; bi >= 0; bi--) {
       const b = burstBullets[bi];
       if (Math.abs(b.x - f.cx) < f.w / 2 + 10 && Math.abs(b.y - f.cy) < f.h / 2 + 10) {
@@ -1099,7 +1112,6 @@ function update(delta) {
   }
   checkFloaterCollisions();
 
-  modeValue.textContent = helicopter.thrusting ? "Boost" : "Glide";
   updateCaveFireBtn();
   updatePauseBtn();
 }
@@ -1724,6 +1736,57 @@ function drawCaveBurstPickup(f) {
   ctx.restore();
 }
 
+function drawRock(f) {
+  const { cx, cy, w, h, fromTop, jitterPts } = f;
+  const left  = cx - w / 2;
+  const right = cx + w / 2;
+  const wallY = fromTop ? cy - h / 2 : cy + h / 2;
+  const tipY  = fromTop ? cy + h / 2 : cy - h / 2;
+  const cols  = jitterPts ? jitterPts.length - 1 : 7;
+
+  // Build jagged tip profile using pre-baked jitter
+  const pts = [];
+  for (let i = 0; i <= cols; i++) {
+    const t  = i / cols;
+    const px = left + t * w;
+    const jitter = jitterPts ? jitterPts[i] : 0;
+    pts.push({ x: px, y: tipY + jitter });
+  }
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(left, wallY);
+  for (const p of pts) ctx.lineTo(p.x, p.y);
+  ctx.lineTo(right, wallY);
+  ctx.closePath();
+
+  const grad = ctx.createLinearGradient(cx, fromTop ? wallY : tipY, cx, fromTop ? tipY : wallY);
+  grad.addColorStop(0,    "#18131f");
+  grad.addColorStop(0.4,  "#2b2038");
+  grad.addColorStop(0.75, "#382c48");
+  grad.addColorStop(1,    "#1e1828");
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(180,140,255,0.22)";
+  ctx.lineWidth   = 1.5;
+  ctx.stroke();
+
+  // Static crack lines between tip points
+  ctx.strokeStyle = "rgba(0,0,0,0.5)";
+  ctx.lineWidth   = 1;
+  for (let i = 1; i < cols; i++) {
+    const p = pts[i];
+    const crackDir = fromTop ? 1 : -1;
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x + (i % 2 === 0 ? 4 : -5), p.y + crackDir * h * 0.16);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
 function drawFloaters() {
   for (const f of floaters) {
     if (f.collected) continue;
@@ -1737,6 +1800,7 @@ function drawFloaters() {
     else if (f.type === "inkblob")     drawInkBlob(f);
     else if (f.type === "caveshield")  drawCaveShieldPickup(f);
     else if (f.type === "caveburst")   drawCaveBurstPickup(f);
+    else if (f.type === "rock")        drawRock(f);
   }
 }
 
