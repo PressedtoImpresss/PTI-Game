@@ -72,9 +72,9 @@ const LEVEL_DEFS = [
   {
     id: 1, name: "Level 1: Print Run",
     subtitle: "Thread the hoops",
-    instruction: "Fly through the glowing rings for +100 bonus points. Dodge flying t-shirts. Grab the heart for an extra life!",
+    instruction: "Fly through the glowing rings for +100 bonus points. Dodge flying t-shirts. Grab rapid gun drops to clear obstacles.",
     completionScore: 900,
-    obstacleTypes: ["hoop", "tshirt", "extralife", "missile"],
+    obstacleTypes: ["hoop", "tshirt", "extralife", "missile", "caveburst"],
     hoopWeight: 0.55,
     baseSpeed: 108, baseGap: 470,
     color: "#4dd9ff",
@@ -82,9 +82,9 @@ const LEVEL_DEFS = [
   {
     id: 2, name: "Level 2: Shop Floor",
     subtitle: "Dodge the press",
-    instruction: "T-shirts and DTF rolls flying at you — dodge them or lose a life. Rings give bonus. Hearts give life!",
+    instruction: "T-shirts and DTF rolls flying at you — dodge them or lose a life. Rapid gun drops can clear a path.",
     completionScore: 1400,
-    obstacleTypes: ["hoop", "tshirt", "tshirt", "vinyl", "inkblob", "heatpress", "drone", "extralife", "missile", "caveshield"],
+    obstacleTypes: ["hoop", "tshirt", "tshirt", "vinyl", "inkblob", "heatpress", "drone", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.15,
     baseSpeed: 128, baseGap: 435,
     color: "#ff9f43",
@@ -103,11 +103,11 @@ const LEVEL_DEFS = [
   {
     id: 4, name: "Deadline Crunch",
     subtitle: "Nothing stays still",
-    instruction: "Maximum speed, moving obstacles, tighter cave. Shoot the drones with your gun! Grab hearts when you can!",
+    instruction: "Maximum speed, moving obstacles, tighter cave. Rapid gun bursts can blast through the big wall rocks.",
     completionScore: 2500,
     obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.3,
-    baseSpeed: 185, baseGap: 320,
+    baseSpeed: 185, baseGap: 352,
     color: "#ff4757",
     verticalMovement: true,
     droneWeight: 0.45,
@@ -119,7 +119,7 @@ const LEVEL_DEFS = [
     completionScore: 3500,
     obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.25,
-    baseSpeed: 210, baseGap: 310,
+    baseSpeed: 210, baseGap: 340,
     color: "#a29bfe",
     verticalMovement: true,
     droneWeight: 0.55,
@@ -131,7 +131,7 @@ const LEVEL_DEFS = [
     completionScore: 5000,
     obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.2,
-    baseSpeed: 235, baseGap: 295,
+    baseSpeed: 235, baseGap: 326,
     color: "#fd9644",
     verticalMovement: true,
     droneWeight: 0.60,
@@ -143,7 +143,7 @@ const LEVEL_DEFS = [
     completionScore: 7000,
     obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.18,
-    baseSpeed: 260, baseGap: 278,
+    baseSpeed: 260, baseGap: 312,
     color: "#ff2255",
     verticalMovement: true,
     droneWeight: 0.65,
@@ -155,7 +155,7 @@ const LEVEL_DEFS = [
     completionScore: 9000,
     obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.16,
-    baseSpeed: 285, baseGap: 260,
+    baseSpeed: 285, baseGap: 296,
     color: "#00e5ff",
     verticalMovement: true,
     droneWeight: 0.70,
@@ -167,7 +167,7 @@ const LEVEL_DEFS = [
     completionScore: 11000,
     obstacleTypes: ["hoop", "drone", "drone", "drone", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.14,
-    baseSpeed: 308, baseGap: 245,
+    baseSpeed: 308, baseGap: 282,
     color: "#bf5fff",
     verticalMovement: true,
     droneWeight: 0.75,
@@ -179,7 +179,7 @@ const LEVEL_DEFS = [
     completionScore: 14000,
     obstacleTypes: ["hoop", "drone", "drone", "drone", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.12,
-    baseSpeed: 330, baseGap: 230,
+    baseSpeed: 330, baseGap: 268,
     color: "#ffd700",
     verticalMovement: true,
     droneWeight: 0.80,
@@ -394,10 +394,18 @@ function getSpeedForScore(score) {
 function getGapForScore(score) {
   const base      = LEVEL_DEFS[gameState.levelIndex].baseGap;
   const wideStart = 520; // all levels start with a generous opening
-  // Smoothly narrow from wideStart → base over the first 300 pts of each level
-  if (score < 300) {
-    const t = score / 300;
+  // Smoothly narrow from wideStart to base. Level 4+ eases in over a longer run.
+  const lateLevel = gameState.levelIndex >= 3;
+  const shrinkDistance = lateLevel ? 520 : 300;
+  if (score < shrinkDistance) {
+    const t = score / shrinkDistance;
     return Math.round(wideStart - (wideStart - base) * t);
+  }
+  if (lateLevel) {
+    if (score < 760) return base;
+    if (score < 1000) return base - 10;
+    if (score < 1240) return base - 18;
+    return base - 26;
   }
   if (score < 500) return base;
   if (score < 700) return base - 18;
@@ -499,7 +507,7 @@ function spawnFloater() {
     if (Math.random() < hoopWeight) {
       type = "hoop";
     } else {
-      const nonSpecial = nonHoop.filter(t => t !== "extralife" && t !== "missile");
+      const nonSpecial = nonHoop.filter(t => t !== "extralife" && t !== "missile" && t !== "caveshield" && t !== "caveburst");
       // Hearts per level: 1/1/1/2/3/4/4/4/4/4
       const maxHearts   = [1, 1, 1, 2, 3, 4, 4, 4, 4, 4][gameState.levelIndex] ?? 1;
       const heartGap    = 600;
@@ -538,7 +546,7 @@ function spawnFloater() {
         type = "caveshield";
       } else if (allowed.includes("caveburst")
           && gameState.burstsSpawnedThisLevel < 1
-          && gameState.displayedScore - gameState.lastBurstScore >= 1100
+          && gameState.displayedScore - gameState.lastBurstScore >= (gameState.levelIndex < 2 ? 450 : 1100)
           && anySep
           && Math.random() < 0.09) {
         gameState.burstsSpawnedThisLevel++;
@@ -1056,7 +1064,7 @@ function update(delta) {
     // Missiles pierce — check every missile vs every destructible obstacle each frame
     for (let fi = floaters.length - 1; fi >= 0; fi--) {
       const f = floaters[fi];
-      if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.type === "rock" || f.collected) continue;
+      if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.collected) continue;
       for (const m of caveBullets) {
         if (Math.abs(m.x - f.cx) < f.w / 2 + 16 && Math.abs(m.y - f.cy) < f.h / 2 + 16) {
           spawnParticles(f.cx, f.cy, "#ff5500", 32);
@@ -1085,10 +1093,10 @@ function update(delta) {
     burstBullets[bi].y  += burstBullets[bi].vy * delta;
     if (burstBullets[bi].x > WORLD_WIDTH + 20) burstBullets.splice(bi, 1);
   }
-  // Burst bullets destroy all non-special obstacles
+  // Burst bullets destroy every obstacle, including wall rocks, but not pickups or hoops.
   for (let fi = floaters.length - 1; fi >= 0; fi--) {
     const f = floaters[fi];
-    if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.type === "rock" || f.collected) continue;
+    if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.collected) continue;
     for (let bi = burstBullets.length - 1; bi >= 0; bi--) {
       const b = burstBullets[bi];
       if (Math.abs(b.x - f.cx) < f.w / 2 + 10 && Math.abs(b.y - f.cy) < f.h / 2 + 10) {
