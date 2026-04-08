@@ -3501,14 +3501,14 @@ async function fetchClaudeComment(score, level, hoops, hits) {
 // ── LEADERBOARD ───────────────────────────────────────────────────────────────
 
 function rankLabel(i) {
-  if (i < 2)  return "Prize Winner";
-  if (i < 10) return "Giveaway Entry";
+  if (i === 0) return "Major Prize";
+  if (i < 10)  return "Prize Draw Entry";
   return "Submitted";
 }
 
 function badgeClass(i) {
-  if (i < 2)  return "champion";
-  if (i < 10) return "raffle";
+  if (i === 0) return "champion";
+  if (i < 10)  return "raffle";
   return "standard";
 }
 
@@ -3523,7 +3523,7 @@ function renderLeaderboard() {
     return;
   }
   leaderboardBody.innerHTML = entries.map((e, i) => `
-    <tr class="${i < 2 ? "champion" : i < 10 ? "raffle" : ""}">
+    <tr class="${i === 0 ? "champion" : i < 10 ? "raffle" : ""}">
       <td>#${i + 1}</td>
       <td>${sanitizeText(e.name)}</td>
       <td>${e.score}</td>
@@ -3763,14 +3763,16 @@ scoreForm.addEventListener("submit", (e) => {
   playerEmailInput.value     = "";
 });
 
-exportJsonButton.addEventListener("click", exportScoresAsJson);
-exportCsvButton.addEventListener("click",  exportScoresAsCsv);
+if (exportJsonButton) exportJsonButton.addEventListener("click", exportScoresAsJson);
+if (exportCsvButton) exportCsvButton.addEventListener("click",  exportScoresAsCsv);
 
-resetBoardButton.addEventListener("click", () => {
-  if (!window.confirm("Reset this week's leaderboard?")) return;
-  localStorage.removeItem(getWeekKey());
-  renderLeaderboard();
-});
+if (resetBoardButton) {
+  resetBoardButton.addEventListener("click", () => {
+    if (!window.confirm("Reset this week's leaderboard?")) return;
+    localStorage.removeItem(getWeekKey());
+    renderLeaderboard();
+  });
+}
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 

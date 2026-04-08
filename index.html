@@ -11,24 +11,23 @@
     <div class="app-shell">
       <section class="hero-panel">
         <div class="hero-copy">
-          <p class="eyebrow">Shopify Game MVP</p>
+          <p class="eyebrow">Pressed To Impress Giveaway</p>
           <h1>Pressed To Impress Cave Flight</h1>
           <p class="lede">
-            A hold-to-fly helicopter challenge built for score competitions, prize winners, and top-10 giveaway
-            entries.
+            Fly as far as you can, submit your score, and climb the weekly leaderboard.
           </p>
           <div class="reward-strip">
             <div>
-              <span class="reward-label">Top 2</span>
-              <strong>Prize Winners</strong>
+              <span class="reward-label">Highest Score</span>
+              <strong>Major Prize</strong>
             </div>
             <div>
-              <span class="reward-label">Top 10</span>
-              <strong>Giveaway Entries</strong>
+              <span class="reward-label">Places 2-10</span>
+              <strong>Prize Draw</strong>
             </div>
             <div>
-              <span class="reward-label">Run Length</span>
-              <strong>Easy to replay</strong>
+              <span class="reward-label">One More Run</span>
+              <strong>Beat Your Best</strong>
             </div>
           </div>
           <ul class="feature-list">
@@ -36,7 +35,7 @@
             <li>Release to let it fall through the cave.</li>
             <li>Thread through cave walls and obstacle columns for distance.</li>
             <li>Submit scores to the leaderboard with name and email.</li>
-            <li>Export the leaderboard when you're ready to pick winners.</li>
+            <li>The highest score wins the major prize. Places 2-10 go into the smaller prize draw.</li>
           </ul>
         </div>
 
@@ -145,22 +144,17 @@
             <p class="section-label">Leaderboard</p>
             <h2>Standings</h2>
           </div>
-          <div class="panel-actions">
-            <button class="button secondary" id="export-json" type="button">Export JSON</button>
-            <button class="button secondary" id="export-csv" type="button">Export CSV</button>
-            <button class="button ghost" id="reset-board" type="button">Reset Board</button>
-          </div>
         </div>
 
         <div class="board-grid">
           <div class="board-copy">
             <p>
-              The top two players are marked as direct prize winners. Players ranked three to ten are marked as giveaway
-              entrants so you can run a weekly draw from the leaderboard without asking for screenshots.
+              The highest score wins the major prize. Players ranked second through tenth are entered into the smaller
+              prize draw.
             </p>
             <div class="legend">
-              <span class="legend-chip champion">Prize Winner</span>
-              <span class="legend-chip raffle">Giveaway Entry</span>
+              <span class="legend-chip champion">Major Prize</span>
+              <span class="legend-chip raffle">Prize Draw Entry</span>
               <span class="legend-chip">Submitted Score</span>
             </div>
           </div>
@@ -182,36 +176,6 @@
               </tbody>
             </table>
           </div>
-        </div>
-      </section>
-
-      <section class="ops-panel">
-        <div>
-          <p class="section-label">Ops Notes</p>
-          <h2>How this MVP fits your launch plan</h2>
-        </div>
-        <div class="ops-grid">
-          <article>
-            <h3>What works now</h3>
-            <p>
-              This prototype is immediately playable in a browser, stores scores locally, and gives you an exportable
-              view of the current winners and giveaway pool.
-            </p>
-          </article>
-          <article>
-            <h3>What to connect next</h3>
-            <p>
-              Replace local storage with a small backend so scores sync across all visitors, then embed the game into Shopify or
-              wrap it into a mobile app shell later.
-            </p>
-          </article>
-          <article>
-            <h3>Why no screenshots</h3>
-            <p>
-              Screenshot submissions create manual work and are easier to fake. A real score form gives you ranking, contact
-              details, and giveaway eligibility in one place.
-            </p>
-          </article>
         </div>
       </section>
     </div>
