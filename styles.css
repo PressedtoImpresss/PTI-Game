@@ -103,7 +103,7 @@ h1 {
 
 .reward-strip {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-top: 22px;
 }
@@ -118,8 +118,6 @@ h1 {
 
 .reward-strip div:nth-child(1) { border-color: rgba(77, 217, 255, 0.30); background: rgba(77, 217, 255, 0.05); }
 .reward-strip div:nth-child(2) { border-color: rgba(176, 109, 255, 0.30); background: rgba(176, 109, 255, 0.05); }
-.reward-strip div:nth-child(3) { border-color: rgba(240, 192, 48, 0.30);  background: rgba(240, 192, 48, 0.05); }
-
 .reward-strip strong {
   display: block;
   margin-top: 6px;
@@ -324,31 +322,6 @@ canvas {
 .board-copy p {
   color: var(--muted);
   line-height: 1.7;
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.legend-chip {
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.88rem;
-}
-
-.legend-chip.champion {
-  background: rgba(140, 255, 84, 0.12);
-  color: #b7ff92;
-}
-
-.legend-chip.raffle {
-  background: rgba(255, 59, 36, 0.14);
-  color: #ffb3a7;
 }
 
 .table-shell {
