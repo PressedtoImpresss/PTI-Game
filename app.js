@@ -3480,17 +3480,35 @@ function renderLeaderboard() {
     </tr>`).join("");
 }
 
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbwBBaFdetFrzqHDl9T6wJAEsaSihyQF5eXCCc1iwy8Fk2OVEV-Y5HQ1ZuB-HPdQRm1j/exec";
+
 function submitScore(name, email, score) {
-  const entries = loadWeeklyScores();
-  entries.push({
+  const entry = {
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     name: name.trim(),
     email: email.trim(),
     score,
     createdAt: new Date().toISOString(),
-  });
+  };
+  const entries = loadWeeklyScores();
+  entries.push(entry);
   saveWeeklyScores(entries);
   renderLeaderboard();
+
+  // Send to Google Sheet
+  fetch(SHEETS_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: entry.name,
+      email: entry.email,
+      score: entry.score,
+      best: gameState.best,
+      submitted_at: entry.createdAt,
+      source: "github-pages",
+    }),
+  }).catch(() => {}); // silent fail — local save already happened
 }
 
 // ── EXPORT ────────────────────────────────────────────────────────────────────
