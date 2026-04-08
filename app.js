@@ -36,6 +36,10 @@ const C = {
 
 const canvas             = document.getElementById("game-canvas");
 const ctx                = canvas.getContext("2d");
+const ptiLogoImg         = new Image();
+let   ptiLogoReady       = false;
+ptiLogoImg.onload        = () => { ptiLogoReady = true; };
+ptiLogoImg.src           = './pti-logo.png';
 const scoreValue         = document.getElementById("score-value");
 // modeValue removed — Mode pill deleted from HUD
 const lifeValue          = document.getElementById("life-value");
@@ -1212,72 +1216,45 @@ function drawCave() {
 // ── DRAW: FLOATERS ────────────────────────────────────────────────────────────
 
 function drawHoop(f) {
-  // Golden coin
+  // PTI Logo collectible
   ctx.save();
   ctx.translate(f.cx, f.cy);
-  const r = f.radius;
+  const r     = f.radius;
+  const pulse = 0.7 + 0.3 * Math.sin(f.phase * 2.8);
+  const size  = r * 2.6;
 
-  // Outer glow pulse
-  const pulse = 0.75 + 0.25 * Math.sin(f.phase * 2.8);
+  // Gold pulsing glow ring behind logo
   ctx.shadowColor = "#ffd700";
-  ctx.shadowBlur  = 20 * pulse;
-
-  // Coin edge — slightly taller ellipse to give 3D thickness illusion
-  ctx.fillStyle = "#a06800";
+  ctx.shadowBlur  = 28 * pulse;
+  ctx.strokeStyle = `rgba(255,215,0,${0.35 * pulse})`;
+  ctx.lineWidth   = 2.5;
   ctx.beginPath();
-  ctx.ellipse(0, r * 0.12, r, r * 0.18, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Main coin face — gold radial gradient
-  const coinG = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 0, 0, 0, r);
-  coinG.addColorStop(0,    "#fff0a0");
-  coinG.addColorStop(0.25, "#ffd700");
-  coinG.addColorStop(0.6,  "#c9a84c");
-  coinG.addColorStop(1,    "#7a5800");
-  ctx.fillStyle = coinG;
-  ctx.beginPath();
-  ctx.arc(0, 0, r, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Rim edge ring
-  ctx.shadowBlur  = 0;
-  ctx.strokeStyle = "#a06800";
-  ctx.lineWidth   = 1.5;
-  ctx.beginPath();
-  ctx.arc(0, 0, r - 1, 0, Math.PI * 2);
+  ctx.arc(0, 0, r + 3, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.shadowBlur = 0;
 
-  // Knurled edge marks (short tick lines around perimeter)
-  ctx.strokeStyle = "rgba(100,60,0,0.4)";
-  ctx.lineWidth   = 1;
-  const ticks = 18;
-  for (let i = 0; i < ticks; i++) {
-    const a = (i / ticks) * Math.PI * 2;
+  if (ptiLogoReady) {
+    // Invert the black-on-white logo → white-on-black, then screen-composite
+    // so the black bg vanishes and the white logo glows on the cave
+    ctx.shadowColor = "#ffd700";
+    ctx.shadowBlur  = 18 * pulse;
+    ctx.filter      = "invert(1) sepia(1) saturate(4) hue-rotate(5deg)";
+    ctx.globalCompositeOperation = "screen";
+    ctx.drawImage(ptiLogoImg, -size / 2, -size / 2, size, size);
+    ctx.globalCompositeOperation = "source-over";
+    ctx.filter      = "none";
+    ctx.shadowBlur  = 0;
+  } else {
+    // Fallback gold circle until image loads
+    const coinG = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 0, 0, 0, r);
+    coinG.addColorStop(0,   "#fff0a0");
+    coinG.addColorStop(0.5, "#ffd700");
+    coinG.addColorStop(1,   "#7a5800");
+    ctx.fillStyle = coinG;
     ctx.beginPath();
-    ctx.moveTo(Math.cos(a) * (r - 2.5), Math.sin(a) * (r - 2.5));
-    ctx.lineTo(Math.cos(a) * (r - 0.5), Math.sin(a) * (r - 0.5));
-    ctx.stroke();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
   }
-
-  // Inner embossed circle
-  ctx.strokeStyle = "rgba(255,240,120,0.5)";
-  ctx.lineWidth   = 1;
-  ctx.beginPath();
-  ctx.arc(0, 0, r * 0.62, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // "$" symbol in centre
-  ctx.fillStyle    = "rgba(120,70,0,0.75)";
-  ctx.font         = `bold ${Math.round(r * 0.85)}px Trebuchet MS`;
-  ctx.textAlign    = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("$", 0, 0);
-
-  // Highlight glint (top-left)
-  ctx.fillStyle = "rgba(255,255,255,0.45)";
-  ctx.beginPath();
-  ctx.ellipse(-r * 0.28, -r * 0.32, r * 0.28, r * 0.14, -0.5, 0, Math.PI * 2);
-  ctx.fill();
 
   ctx.restore();
 }
