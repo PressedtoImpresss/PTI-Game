@@ -7,29 +7,29 @@ const APPS_SCRIPT_URL = "";
 
 // Midnight Studio palette
 const C = {
-  bgTop:        "#071018",
-  bgMid:        "#0d1b2e",
-  wallDark:     "#0a1c35",
-  wallMid:      "#1a3a5c",
-  wallLight:    "#2a5080",
-  wallEdge:     "rgba(58,104,152,0.9)",
-  hoopStroke:   "#c9a84c",
-  hoopGlow:     "rgba(201,168,76,0.55)",
-  hoopInner:    "rgba(201,168,76,0.12)",
-  obstFill:     "#ff9f43",
-  obstGlow:     "rgba(255,159,67,0.45)",
-  obstAlt:      "#ffcc5c",
-  heliBody:     "#e8e4dc",
-  heliTrim:     "#c9a84c",
-  heliCockpit:  "#7ab8ff",
-  thrustGlow:   "rgba(77,217,255,0.55)",
-  trailBase:    "rgba(150,200,255,",
-  particleHoop: "#c9a84c",
-  particleHit:  "#ff9f43",
+  bgTop:        "#060210",
+  bgMid:        "#0a0e26",
+  wallDark:     "#0c1040",
+  wallMid:      "#1e4490",
+  wallLight:    "#2870cc",
+  wallEdge:     "rgba(60,150,255,0.95)",
+  hoopStroke:   "#f5c830",
+  hoopGlow:     "rgba(245,200,48,0.75)",
+  hoopInner:    "rgba(245,200,48,0.20)",
+  obstFill:     "#ff4820",
+  obstGlow:     "rgba(255,72,32,0.65)",
+  obstAlt:      "#ffec40",
+  heliBody:     "#eeeadc",
+  heliTrim:     "#f5c830",
+  heliCockpit:  "#70ccff",
+  thrustGlow:   "rgba(80,225,255,0.80)",
+  trailBase:    "rgba(170,225,255,",
+  particleHoop: "#f5c830",
+  particleHit:  "#ff4820",
   hudText:      "#ffffff",
-  hudMuted:     "rgba(255,255,255,0.55)",
-  gridLine:     "rgba(26,58,92,0.22)",
-  bannerBg:     "rgba(7,16,24,0.93)",
+  hudMuted:     "rgba(255,255,255,0.65)",
+  gridLine:     "rgba(60,90,200,0.20)",
+  bannerBg:     "rgba(5,2,16,0.96)",
 };
 
 // ── DOM REFS ──────────────────────────────────────────────────────────────────
@@ -40,7 +40,7 @@ const scoreValue         = document.getElementById("score-value");
 const modeValue          = document.getElementById("mode-value");
 const lifeValue          = document.getElementById("life-value");
 const bestValue          = document.getElementById("best-value");
-const weekLabel          = document.getElementById("week-label");
+const missilesValue      = document.getElementById("missiles-value");
 const startOverlay       = document.getElementById("start-overlay");
 const gameOverOverlay    = document.getElementById("game-over-overlay");
 const startButton        = document.getElementById("start-button");
@@ -893,6 +893,7 @@ function startNextLevel() {
   }
   gameState.levelIndex += 1;
   gameState.missiles   += 1;  // +1 missile awarded each new level
+  updateCaveFireBtn();
   resetGame(false);
   gameState.status = "running";
   startOverlay.classList.add("hidden");
@@ -1106,7 +1107,9 @@ function update(delta) {
 // ── DRAW: BACKGROUND ─────────────────────────────────────────────────────────
 
 function drawBackground() {
-  // Base gradient
+  const levelColor = LEVEL_DEFS[gameState.levelIndex]?.color || "#4dd9ff";
+
+  // Base gradient — subtly shifted toward level colour at midpoint
   const bg = ctx.createLinearGradient(0, 0, 0, WORLD_HEIGHT);
   bg.addColorStop(0,   C.bgTop);
   bg.addColorStop(0.5, C.bgMid);
@@ -1114,8 +1117,17 @@ function drawBackground() {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-  // Subtle depth grid
-  ctx.strokeStyle = "rgba(40,80,120,0.10)";
+  // Level-coloured side glow (left + right edges)
+  const sideGlow = ctx.createLinearGradient(0, 0, WORLD_WIDTH, 0);
+  sideGlow.addColorStop(0,    `${levelColor}28`);
+  sideGlow.addColorStop(0.22, "rgba(0,0,0,0)");
+  sideGlow.addColorStop(0.78, "rgba(0,0,0,0)");
+  sideGlow.addColorStop(1,    `${levelColor}28`);
+  ctx.fillStyle = sideGlow;
+  ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+
+  // Grid lines tinted to level colour
+  ctx.strokeStyle = `${levelColor}1a`;
   ctx.lineWidth = 1;
   for (let x = 0; x < WORLD_WIDTH; x += 36) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, WORLD_HEIGHT); ctx.stroke();
@@ -1124,12 +1136,11 @@ function drawBackground() {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD_WIDTH, y); ctx.stroke();
   }
 
-  // Level-tinted radial vignette in the centre
-  const levelColor = LEVEL_DEFS[gameState.levelIndex]?.color || "#4dd9ff";
-  const vign = ctx.createRadialGradient(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 40, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 280);
-  vign.addColorStop(0,   "rgba(0,0,0,0)");
-  vign.addColorStop(0.6, "rgba(0,0,0,0)");
-  vign.addColorStop(1,   `${levelColor}18`);
+  // Strong radial glow from centre in level colour
+  const vign = ctx.createRadialGradient(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 20, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 280);
+  vign.addColorStop(0,   `${levelColor}30`);
+  vign.addColorStop(0.45, `${levelColor}0c`);
+  vign.addColorStop(1,   "rgba(0,0,0,0)");
   ctx.fillStyle = vign;
   ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 }
@@ -1137,10 +1148,14 @@ function drawBackground() {
 // ── DRAW: CAVE ────────────────────────────────────────────────────────────────
 
 function drawCave() {
-  // Outer border glow
-  ctx.strokeStyle = "rgba(58,104,152,0.6)";
+  // Outer border glow — level-coloured
+  const lvBorder = LEVEL_DEFS[gameState.levelIndex]?.color || "#4dd9ff";
+  ctx.strokeStyle = `${lvBorder}70`;
   ctx.lineWidth   = 2;
+  ctx.shadowColor = lvBorder;
+  ctx.shadowBlur  = 8;
   ctx.strokeRect(8, 8, WORLD_WIDTH - 16, WORLD_HEIGHT - 16);
+  ctx.shadowBlur  = 0;
 
   for (let i = 0; i < cave.ceiling.length; i++) {
     const x       = i * COLUMN_WIDTH - cave.offset;
@@ -2432,7 +2447,7 @@ function updateBossArena(delta) {
     A.powerupTimer -= delta;
     if (A.powerupTimer <= 0 && A.powerups.length === 0) {
       const type = Math.random() < 0.5 ? "shield" : "burst";
-      A.powerups.push({ type, x: 40 + Math.random() * (WORLD_WIDTH - 80), y: -18, vy: 88 });
+      A.powerups.push({ type, x: 40 + Math.random() * (WORLD_WIDTH - 80), y: -18, vy: 55 });
       A.powerupTimer = Math.max(7, 18 - A.bossIndex * 1.6);
     }
     for (let i = A.powerups.length - 1; i >= 0; i--) {
@@ -2530,6 +2545,7 @@ function updateBossArena(delta) {
         gameState.lives   += 1;
         gameState.missiles += 1;
         lifeValue.textContent = String(gameState.lives);
+        updateCaveFireBtn();
         scorePopups.push({ x: WORLD_WIDTH / 2, y: WORLD_HEIGHT / 2 - 50, text: "+LIFE  +MISSILE", life: 2.0 });
       }
     }
@@ -2641,20 +2657,27 @@ function renderBossArena() {
   if (!bossArena) return;
   const A = bossArena;
 
-  // Background — deep space
+  // Background — deep space with boss colour atmosphere
   ctx.fillStyle = "#06080f";
   ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+  const bossCol = A.def.color || "#4dd9ff";
+  const bossAtm = ctx.createRadialGradient(WORLD_WIDTH / 2, WORLD_HEIGHT * 0.28, 10, WORLD_WIDTH / 2, WORLD_HEIGHT * 0.28, WORLD_HEIGHT * 0.75);
+  bossAtm.addColorStop(0,   `${bossCol}2a`);
+  bossAtm.addColorStop(0.5, `${bossCol}10`);
+  bossAtm.addColorStop(1,   "rgba(0,0,0,0)");
+  ctx.fillStyle = bossAtm;
+  ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-  // Stars
+  // Stars — tinted slightly to boss colour
   for (const s of A.stars) {
     ctx.globalAlpha = s.a * (0.5 + 0.5 * Math.sin(A.boss.phase * 1.4 + s.x));
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = s.x % 3 === 0 ? bossCol : "#ffffff";
     ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
   }
   ctx.globalAlpha = 1;
 
-  // Arena floor/ceiling grid lines
-  ctx.strokeStyle = "rgba(77,217,255,0.07)";
+  // Arena grid lines tinted to boss colour
+  ctx.strokeStyle = `${bossCol}12`;
   ctx.lineWidth = 1;
   for (let y = 0; y < WORLD_HEIGHT; y += 40) {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD_WIDTH, y); ctx.stroke();
@@ -3473,9 +3496,10 @@ function updateCaveFireBtn() {
   cavFireBtn.classList.toggle("hidden", !show);
   if (show) {
     const count = gameState.missiles;
-    cavFireBtn.textContent = count > 0 ? `🚀 ×${count}` : "–";
+    cavFireBtn.textContent   = count > 0 ? `🚀 FIRE` : "– FIRE";
     cavFireBtn.style.opacity = count > 0 ? "1" : "0.4";
   }
+  missilesValue.textContent = String(gameState.missiles);
 }
 
 const pauseBtn = document.getElementById("pause-btn");
@@ -3515,9 +3539,10 @@ canvas.addEventListener("pointerdown", (e) => {
   }
   if (gameState.status === "boss" && bossArena) {
     const c = canvasCoords(e);
-    bossArena.joyAnchor   = { x: c.x, y: c.y };
-    bossArena.joyPos      = { x: c.x, y: c.y };
-    bossArena.touchActive = true;
+    bossArena.joyAnchor    = { x: c.x, y: c.y };
+    bossArena.joyPos       = { x: c.x, y: c.y };
+    bossArena.touchActive  = true;
+    bossArena.joyPointerId = e.pointerId;
     canvas.setPointerCapture(e.pointerId);
     return;
   }
@@ -3525,21 +3550,23 @@ canvas.addEventListener("pointerdown", (e) => {
 });
 
 canvas.addEventListener("pointermove", (e) => {
-  if (gameState.status === "boss" && bossArena && bossArena.touchActive) {
+  if (gameState.status === "boss" && bossArena && bossArena.touchActive
+      && e.pointerId === bossArena.joyPointerId) {
     bossArena.joyPos = canvasCoords(e);
   }
 });
 
 function clearBossTouch() {
   if (bossArena) {
-    bossArena.touchActive = false;
-    bossArena.joyAnchor   = null;
-    bossArena.joyPos      = null;
+    bossArena.touchActive  = false;
+    bossArena.joyAnchor    = null;
+    bossArena.joyPos       = null;
+    bossArena.joyPointerId = null;
   }
 }
-canvas.addEventListener("pointerup",     () => { clearBossTouch(); setThrust(false); });
-canvas.addEventListener("pointerleave",  () => { clearBossTouch(); setThrust(false); });
-canvas.addEventListener("pointercancel", () => { clearBossTouch(); setThrust(false); });
+canvas.addEventListener("pointerup",     (e) => { if (e.pointerId === bossArena?.joyPointerId) clearBossTouch(); setThrust(false); });
+canvas.addEventListener("pointerleave",  ()  => { setThrust(false); });
+canvas.addEventListener("pointercancel", (e) => { if (e.pointerId === bossArena?.joyPointerId) clearBossTouch(); setThrust(false); });
 window.addEventListener("pointerup",     () => setThrust(false));
 
 window.addEventListener("keydown", (e) => {
@@ -3569,8 +3596,8 @@ document.getElementById("boss-ready-btn").addEventListener("click", () => {
   updatePauseBtn();
 });
 
-// D-pad + fire touch controls for boss fight
-[["btn-up","ArrowUp"],["btn-down","ArrowDown"],["btn-left","ArrowLeft"],["btn-right","ArrowRight"],["btn-fire"," "]].forEach(([id, key]) => {
+// Fire button touch control for boss fight (movement handled by canvas joystick)
+[["btn-fire"," "]].forEach(([id, key]) => {
   const el = document.getElementById(id);
   el.addEventListener("pointerdown",  (e) => { e.preventDefault(); bossKeys[key] = true;  });
   el.addEventListener("pointerup",    (e) => { e.preventDefault(); delete bossKeys[key];  });
@@ -3625,7 +3652,7 @@ resetBoardButton.addEventListener("click", () => {
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 
-weekLabel.textContent = formatWeekLabel();
+missilesValue.textContent = String(gameState.missiles);
 bestValue.textContent = String(gameState.best);
 renderLeaderboard();
 resetGame();
