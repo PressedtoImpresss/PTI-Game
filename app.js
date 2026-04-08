@@ -660,6 +660,53 @@ function intersects(a, b) {
          a.y < b.y + b.height && a.y + a.height > b.y;
 }
 
+function isDestructibleFloater(f) {
+  return f && !f.collected &&
+    f.type !== "extralife" &&
+    f.type !== "hoop" &&
+    f.type !== "missile" &&
+    f.type !== "caveshield" &&
+    f.type !== "caveburst";
+}
+
+function projectileHitsFloater(projectile, f, radius) {
+  const fb = getFloaterHitbox(f);
+  return projectile.x >= fb.x - radius &&
+         projectile.x <= fb.x + fb.width + radius &&
+         projectile.y >= fb.y - radius &&
+         projectile.y <= fb.y + fb.height + radius;
+}
+
+function getFloaterAimPoint(f) {
+  if (f.type === "rock") {
+    return { x: f.cx, y: f.fromTop ? f.cy + f.h / 2 : f.cy - f.h / 2 };
+  }
+  return { x: f.cx, y: f.cy };
+}
+
+function getNearestDestructibleAhead() {
+  let target = null;
+  let nearestX = Infinity;
+  for (const f of floaters) {
+    if (!isDestructibleFloater(f) || f.cx <= helicopter.x + 24) continue;
+    if (f.cx < nearestX) {
+      target = f;
+      nearestX = f.cx;
+    }
+  }
+  return target;
+}
+
+function destroyFloaterAt(index, points, colorA, colorB) {
+  const f = floaters[index];
+  spawnParticles(f.cx, f.cy, colorA, 24);
+  spawnParticles(f.cx, f.cy, colorB, 16);
+  if (f.type === "rock") spawnParticles(f.cx, f.cy, "#ffffff", 14);
+  scorePopups.push({ x: f.cx, y: f.cy - 18, text: `+${points}`, life: 1.1 });
+  gameState.bonusScore += points;
+  floaters.splice(index, 1);
+}
+
 function collidesWithCave() {
   const hb = getHelicopterHitbox();
   const xs = [hb.x, hb.x + hb.width / 2, hb.x + hb.width];
@@ -1064,15 +1111,10 @@ function update(delta) {
     // Missiles pierce — check every missile vs every destructible obstacle each frame
     for (let fi = floaters.length - 1; fi >= 0; fi--) {
       const f = floaters[fi];
-      if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.collected) continue;
+      if (!isDestructibleFloater(f)) continue;
       for (const m of caveBullets) {
-        if (Math.abs(m.x - f.cx) < f.w / 2 + 16 && Math.abs(m.y - f.cy) < f.h / 2 + 16) {
-          spawnParticles(f.cx, f.cy, "#ff5500", 32);
-          spawnParticles(f.cx, f.cy, "#ffcc00", 22);
-          spawnParticles(f.cx, f.cy, "#ffffff", 10);
-          scorePopups.push({ x: f.cx, y: f.cy - 22, text: "+150", life: 1.3 });
-          gameState.bonusScore += 150;
-          floaters.splice(fi, 1);
+        if (projectileHitsFloater(m, f, 18)) {
+          destroyFloaterAt(fi, 150, "#ff5500", "#ffcc00");
           break;
         }
       }
@@ -1083,7 +1125,12 @@ function update(delta) {
   if (gameState.caveBurst > 0) {
     gameState.caveBurstFireTimer -= delta;
     if (gameState.caveBurstFireTimer <= 0) {
-      burstBullets.push({ x: helicopter.x + 28, y: helicopter.y + (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 20 });
+      const target = getNearestDestructibleAhead();
+      const origin = { x: helicopter.x + 28, y: helicopter.y + (Math.random() - 0.5) * 8 };
+      const aim = target ? getFloaterAimPoint(target) : { x: origin.x + 160, y: origin.y + (Math.random() - 0.5) * 10 };
+      const travelTime = Math.max(0.16, (aim.x - origin.x) / 580);
+      const vy = clamp((aim.y - origin.y) / travelTime, -420, 420);
+      burstBullets.push({ x: origin.x, y: origin.y, vy });
       gameState.caveBurstFireTimer = 0.055; // ~18 shots/sec
     }
   }
@@ -1096,16 +1143,12 @@ function update(delta) {
   // Burst bullets destroy every obstacle, including wall rocks, but not pickups or hoops.
   for (let fi = floaters.length - 1; fi >= 0; fi--) {
     const f = floaters[fi];
-    if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.collected) continue;
+    if (!isDestructibleFloater(f)) continue;
     for (let bi = burstBullets.length - 1; bi >= 0; bi--) {
       const b = burstBullets[bi];
-      if (Math.abs(b.x - f.cx) < f.w / 2 + 10 && Math.abs(b.y - f.cy) < f.h / 2 + 10) {
-        spawnParticles(f.cx, f.cy, "#ffcc33", 18);
-        spawnParticles(f.cx, f.cy, "#ff8800", 10);
-        scorePopups.push({ x: f.cx, y: f.cy - 18, text: "+80", life: 1.0 });
-        gameState.bonusScore += 80;
+      if (projectileHitsFloater(b, f, 14)) {
+        destroyFloaterAt(fi, 80, "#ffcc33", "#ff8800");
         burstBullets.splice(bi, 1);
-        floaters.splice(fi, 1);
         break;
       }
     }
