@@ -1017,7 +1017,7 @@ function setThrust(active) {
 function update(delta) {
   if (gameState.status === "boss") { updateBossArena(delta); return; }
   if (gameState.status !== "running") return;
-  if (gameState.pausedByBlur || document.hidden || !document.hasFocus()) return;
+  if (gameState.pausedByBlur || document.hidden) return;
 
   gameState.speed = getSpeedForScore(gameState.displayedScore);
   gameState.distance += gameState.speed * delta;
@@ -3654,11 +3654,7 @@ function canvasCoords(e) {
 
 canvas.addEventListener("pointerdown", (e) => {
   e.preventDefault();
-  if (gameState.pausedByBlur && (gameState.status === "running" || gameState.status === "boss")) {
-    gameState.pausedByBlur = false;
-    lastFrame = performance.now();
-    return;
-  }
+  if (gameState.pausedByBlur) return; // only pause btn can unpause
   if (gameState.status === "boss" && bossArena) {
     const c = canvasCoords(e);
     bossArena.joyAnchor    = { x: c.x, y: c.y };
@@ -3703,8 +3699,8 @@ window.addEventListener("keyup", (e) => {
   if (e.code === "Space") { e.preventDefault(); setThrust(false); }
 });
 
-window.addEventListener("blur",  () => { gameState.pausedByBlur = true;  setThrust(false); });
-window.addEventListener("focus", () => { gameState.pausedByBlur = false; lastFrame = performance.now(); });
+window.addEventListener("blur",  () => { setThrust(false); });
+window.addEventListener("focus", () => { if (!gameState.pausedByBlur) lastFrame = performance.now(); });
 
 // Boss ready button
 document.getElementById("boss-ready-btn").addEventListener("click", () => {
@@ -3735,17 +3731,6 @@ document.getElementById("btn-swap").addEventListener("pointerdown", (e) => {
   }
 });
 
-// Pause when clicking anywhere outside the game canvas
-document.addEventListener("pointerdown", (e) => {
-  if (e.target === canvas) return;
-  if (e.target.closest("#boss-controls")) return;  // d-pad / fire / swap don't pause
-  if (e.target.closest("#cave-fire-btn")) return;  // missile button doesn't pause
-  if (e.target.closest("#pause-btn"))      return;  // pause button handles itself
-  if ((gameState.status === "running" || gameState.status === "boss") && !gameState.pausedByBlur) {
-    gameState.pausedByBlur = true;
-    setThrust(false);
-  }
-});
 
 document.addEventListener("visibilitychange", () => {
   gameState.pausedByBlur = document.hidden;
