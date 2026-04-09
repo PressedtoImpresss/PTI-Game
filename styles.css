@@ -576,10 +576,17 @@ tbody tr.raffle {
 }
 
 @media (max-width: 640px) {
+  html, body {
+    overflow: hidden;
+    height: 100%;
+    touch-action: none;
+  }
+
   .app-shell {
     width: 100%;
     padding: 0;
     margin: 0;
+    overflow: hidden;
   }
 
   /* Hide everything except the game on mobile */
@@ -590,16 +597,23 @@ tbody tr.raffle {
   }
 
   .hero-panel {
-    display: block;
+    display: flex;
+    flex-direction: column;
     padding: 0;
     border-radius: 0;
     border: none;
     box-shadow: none;
     background: #06040f;
+    height: 100svh;
+    overflow: hidden;
   }
 
   .game-card {
     width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   /* Game frame fills the full viewport */
@@ -607,17 +621,26 @@ tbody tr.raffle {
     width: 100% !important;
     max-width: 100% !important;
     aspect-ratio: auto !important;
-    height: 100svh;
+    flex: 1;
+    height: 100%;
     padding: 0;
     border-radius: 0;
     border: none;
-    background: #07101a;
+    background: #06040f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
   }
 
   canvas {
     border-radius: 0;
-    width: 100% !important;
-    height: calc(100svh - 56px) !important; /* leave room for HUD strip */
+    /* Maintain 9:16 aspect ratio, fill height, never overflow width */
+    width: auto !important;
+    height: calc(100svh - 56px) !important;
+    max-width: 100% !important;
+    aspect-ratio: 9 / 16;
+    display: block;
   }
 
   /* HUD strip sits below the canvas, not on top of it */
@@ -626,6 +649,7 @@ tbody tr.raffle {
     left: auto;
     right: auto;
     bottom: auto;
+    width: 100%;
     height: 56px;
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -633,6 +657,7 @@ tbody tr.raffle {
     padding: 4px 6px;
     border-top: 1px solid rgba(140,90,255,0.22);
     background: rgba(8,4,20,0.99);
+    flex-shrink: 0;
   }
 
   .hud-pill {
