@@ -577,16 +577,14 @@ tbody tr.raffle {
 
 @media (max-width: 640px) {
   html, body {
-    overflow: hidden;
-    height: 100%;
-    touch-action: none;
+    width: 100%;
+    overflow-x: hidden;
   }
 
   .app-shell {
     width: 100%;
     padding: 0;
     margin: 0;
-    overflow: hidden;
   }
 
   /* Hide everything except the game on mobile */
@@ -597,50 +595,33 @@ tbody tr.raffle {
   }
 
   .hero-panel {
-    display: flex;
-    flex-direction: column;
+    display: block;
     padding: 0;
     border-radius: 0;
     border: none;
     box-shadow: none;
     background: #06040f;
-    height: 100svh;
-    overflow: hidden;
   }
 
   .game-card {
     width: 100%;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
   }
 
-  /* Game frame fills the full viewport */
   .game-frame {
     width: 100% !important;
     max-width: 100% !important;
     aspect-ratio: auto !important;
-    flex: 1;
-    min-height: 0;
     padding: 0;
     border-radius: 0;
     border: none;
     background: #06040f;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
   }
 
+  /* Canvas scales like an image — width fills screen, height proportional */
   canvas {
     border-radius: 0;
-    /* Scale to fit the available space without distorting the game world */
-    width: auto !important;
+    width: 100% !important;
     height: auto !important;
-    max-width: 100% !important;
-    max-height: calc(100svh - 56px) !important;
-    aspect-ratio: 9 / 16;
     display: block;
   }
 
@@ -658,7 +639,6 @@ tbody tr.raffle {
     padding: 4px 6px;
     border-top: 1px solid rgba(140,90,255,0.22);
     background: rgba(8,4,20,0.99);
-    flex-shrink: 0;
   }
 
   .hud-pill {
