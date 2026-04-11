@@ -637,13 +637,11 @@ tbody tr.raffle {
     overflow: hidden;
   }
 
-  /* JS sets exact size — CSS is just a fallback */
+  /* JS sets exact size — no !important so JS inline styles can override */
   canvas {
     border-radius: 0;
     display: block;
     flex-shrink: 0;
-    width: 100% !important;
-    height: auto !important;
   }
 
   /* HUD strip sits below the canvas — 6 cols to fit pause btn + 5 pills in one row */
