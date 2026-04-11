@@ -3776,15 +3776,14 @@ function fitMobileCanvas() {
   const vh = window.innerHeight;
   if (vw > 700) { canvas.style.width = ""; canvas.style.height = ""; return; }
   const hudH = 56;
-  // Cap at 88% of viewport height — leaves a safe buffer on every phone/browser
-  const maxH = Math.round(vh * 0.88) - hudH;
-  const maxW = vw;
-  const naturalH = Math.round(maxW * (640 / 360));
-  if (naturalH <= maxH) {
-    canvas.style.width  = maxW + "px";
+  // Fill whatever height the iframe/viewport gives us
+  const canvasH = vh - hudH;
+  const naturalH = Math.round(vw * (640 / 360));
+  if (naturalH <= canvasH) {
+    canvas.style.width  = vw + "px";
     canvas.style.height = naturalH + "px";
   } else {
-    const h = maxH;
+    const h = canvasH;
     const w = Math.round(h * (360 / 640));
     canvas.style.width  = w + "px";
     canvas.style.height = h + "px";
