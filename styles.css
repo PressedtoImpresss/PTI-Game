@@ -636,15 +636,14 @@ tbody tr.raffle {
     overflow: hidden;
   }
 
-  /* Height-driven sizing: fills viewport minus HUD, width follows 9:16 ratio */
+  /* Scale like an image: fill screen width, height follows intrinsic 360×640 ratio */
   canvas {
     border-radius: 0;
     display: block;
     flex-shrink: 0;
-    width: auto !important;
-    height: calc(100dvh - 56px) !important;
-    max-width: 100% !important;
-    aspect-ratio: 9 / 16;
+    width: 100% !important;
+    height: auto !important;
+    max-height: calc(100svh - 56px) !important;
   }
 
   /* HUD strip sits below the canvas — 6 cols to fit pause btn + 5 pills in one row */

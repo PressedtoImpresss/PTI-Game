@@ -3767,3 +3767,25 @@ renderLeaderboard();
 resetGame();
 render();
 requestAnimationFrame(frameLoop);
+
+// ── MOBILE CANVAS FIT ────────────────────────────────────────────────────────
+// CSS handles most cases but JS ensures canvas never overflows on short phones
+// where width*16/9 would exceed available height.
+function fitMobileCanvas() {
+  if (window.innerWidth > 640) { canvas.style.width = ""; canvas.style.height = ""; return; }
+  const hudH   = 56;
+  const availW = window.innerWidth;
+  const availH = window.innerHeight - hudH;
+  const naturalH = availW * (640 / 360);
+  if (naturalH <= availH) {
+    canvas.style.width  = availW + "px";
+    canvas.style.height = "auto";
+  } else {
+    const h = availH;
+    const w = Math.round(h * (360 / 640));
+    canvas.style.width  = w + "px";
+    canvas.style.height = h + "px";
+  }
+}
+window.addEventListener("resize", fitMobileCanvas);
+fitMobileCanvas();
