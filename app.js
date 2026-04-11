@@ -3773,21 +3773,13 @@ requestAnimationFrame(frameLoop);
 // where width*16/9 would exceed available height.
 function fitMobileCanvas() {
   const vw = window.innerWidth;
-  const vh = window.innerHeight;
   if (vw > 700) { canvas.style.width = ""; canvas.style.height = ""; return; }
-  const hudH = 56;
-  // Fill whatever height the iframe/viewport gives us
-  const canvasH = vh - hudH;
-  const naturalH = Math.round(vw * (640 / 360));
-  if (naturalH <= canvasH) {
-    canvas.style.width  = vw + "px";
-    canvas.style.height = naturalH + "px";
-  } else {
-    const h = canvasH;
-    const w = Math.round(h * (360 / 640));
-    canvas.style.width  = w + "px";
-    canvas.style.height = h + "px";
-  }
+  // Size by width only — reliable on all Android/iOS browsers regardless of iframe
+  // 72% of screen width → canvas is ~30% smaller than full-screen
+  const w = Math.round(vw * 0.72);
+  const h = Math.round(w * (640 / 360));
+  canvas.style.width  = w + "px";
+  canvas.style.height = h + "px";
 }
 window.addEventListener("resize", fitMobileCanvas);
 fitMobileCanvas();
