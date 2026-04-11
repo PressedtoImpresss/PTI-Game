@@ -11,32 +11,27 @@
     <div class="app-shell">
       <section class="hero-panel">
         <div class="hero-copy">
-          <p class="eyebrow">Weekly Shopify Game MVP</p>
+          <p class="eyebrow">Pressed To Impress Giveaway</p>
           <h1>Pressed To Impress Cave Flight</h1>
           <p class="lede">
-            A hold-to-fly helicopter challenge built for weekly score competitions, prize winners, and top-10 giveaway
-            entries.
+            Fly as far as you can, submit your score, and climb the weekly leaderboard.
           </p>
           <div class="reward-strip">
             <div>
-              <span class="reward-label">Top 2</span>
-              <strong>Prize Winners</strong>
+              <span class="reward-label">Highest Score</span>
+              <strong>Major Prize</strong>
             </div>
             <div>
-              <span class="reward-label">Top 10</span>
-              <strong>Giveaway Entries</strong>
-            </div>
-            <div>
-              <span class="reward-label">Run Length</span>
-              <strong>Easy to replay</strong>
+              <span class="reward-label">Places 2-10</span>
+              <strong>Prize Draw</strong>
             </div>
           </div>
           <ul class="feature-list">
             <li>Hold the mouse, touch, or spacebar to make the helicopter rise.</li>
             <li>Release to let it fall through the cave.</li>
             <li>Thread through cave walls and obstacle columns for distance.</li>
-            <li>Submit scores to this week's board with name and email.</li>
-            <li>Export the leaderboard when you're ready to pick winners.</li>
+            <li>Submit scores to the leaderboard with name and email.</li>
+            <li>The highest score wins the major prize. Places 2-10 go into the smaller prize draw.</li>
           </ul>
         </div>
 
@@ -46,7 +41,7 @@
 
             <div class="start-overlay" id="start-overlay">
               <div class="overlay-card">
-                <p class="overlay-kicker">Weekly Challenge</p>
+                <p class="overlay-kicker">High Score Challenge</p>
                 <h2>Run The Perfect Print Route</h2>
                 <p>
                   Hold to climb, release to drop, and guide the helicopter through a shifting cave while avoiding obstacles.
@@ -74,7 +69,7 @@
               <div class="overlay-card">
                 <p class="overlay-kicker">Run Complete</p>
                 <h2 id="final-score-heading">Score: 0</h2>
-                <p id="result-message">Submit your score to this week's leaderboard.</p>
+                <p id="result-message">Submit your score to the leaderboard.</p>
 
                 <form id="score-form" class="score-form">
                   <label>
@@ -107,12 +102,6 @@
 
             <!-- Boss fight touch controls (shown only during boss fights) -->
             <div id="boss-controls" class="boss-controls hidden">
-              <div class="d-pad">
-                <button id="btn-up"    class="d-btn" type="button">▲</button>
-                <button id="btn-left"  class="d-btn" type="button">◀</button>
-                <button id="btn-right" class="d-btn" type="button">▶</button>
-                <button id="btn-down"  class="d-btn" type="button">▼</button>
-              </div>
               <div class="fire-group">
                 <button id="btn-swap" class="swap-btn" type="button">SWAP</button>
                 <button id="btn-fire" class="fire-btn" type="button">FIRE</button>
@@ -129,10 +118,6 @@
                 <strong id="score-value">0</strong>
               </div>
               <div class="hud-pill">
-                <span>Mode</span>
-                <strong id="mode-value">Fly</strong>
-              </div>
-              <div class="hud-pill">
                 <span>Life</span>
                 <strong id="life-value">1</strong>
               </div>
@@ -141,8 +126,8 @@
                 <strong id="best-value">0</strong>
               </div>
               <div class="hud-pill">
-                <span>Week</span>
-                <strong id="week-label">Loading</strong>
+                <span>🚀</span>
+                <strong id="missiles-value">0</strong>
               </div>
             </div>
           </div>
@@ -153,26 +138,16 @@
         <div class="panel-head">
           <div>
             <p class="section-label">Leaderboard</p>
-            <h2>This Week's Standings</h2>
-          </div>
-          <div class="panel-actions">
-            <button class="button secondary" id="export-json" type="button">Export JSON</button>
-            <button class="button secondary" id="export-csv" type="button">Export CSV</button>
-            <button class="button ghost" id="reset-board" type="button">Reset Week</button>
+            <h2>Standings</h2>
           </div>
         </div>
 
         <div class="board-grid">
           <div class="board-copy">
             <p>
-              The top two players are marked as direct prize winners. Players ranked three to ten are marked as giveaway
-              entrants so you can run a weekly draw from the leaderboard without asking for screenshots.
+              The highest score wins the major prize. Players ranked second through tenth are entered into the smaller
+              prize draw.
             </p>
-            <div class="legend">
-              <span class="legend-chip champion">Prize Winner</span>
-              <span class="legend-chip raffle">Giveaway Entry</span>
-              <span class="legend-chip">Submitted Score</span>
-            </div>
           </div>
 
           <div class="table-shell">
@@ -192,36 +167,6 @@
               </tbody>
             </table>
           </div>
-        </div>
-      </section>
-
-      <section class="ops-panel">
-        <div>
-          <p class="section-label">Ops Notes</p>
-          <h2>How this MVP fits your launch plan</h2>
-        </div>
-        <div class="ops-grid">
-          <article>
-            <h3>What works now</h3>
-            <p>
-              This prototype is immediately playable in a browser, stores weekly scores locally, and gives you an exportable
-              view of the current week's winners and giveaway pool.
-            </p>
-          </article>
-          <article>
-            <h3>What to connect next</h3>
-            <p>
-              Replace local storage with a small backend so scores sync across all visitors, then embed the game into Shopify or
-              wrap it into a mobile app shell later.
-            </p>
-          </article>
-          <article>
-            <h3>Why no screenshots</h3>
-            <p>
-              Screenshot submissions create manual work and are easier to fake. A real score form gives you ranking, contact
-              details, and giveaway eligibility in one place.
-            </p>
-          </article>
         </div>
       </section>
     </div>

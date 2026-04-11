@@ -7,40 +7,44 @@ const APPS_SCRIPT_URL = "";
 
 // Midnight Studio palette
 const C = {
-  bgTop:        "#071018",
-  bgMid:        "#0d1b2e",
-  wallDark:     "#0a1c35",
-  wallMid:      "#1a3a5c",
-  wallLight:    "#2a5080",
-  wallEdge:     "rgba(58,104,152,0.9)",
-  hoopStroke:   "#c9a84c",
-  hoopGlow:     "rgba(201,168,76,0.55)",
-  hoopInner:    "rgba(201,168,76,0.12)",
-  obstFill:     "#ff9f43",
-  obstGlow:     "rgba(255,159,67,0.45)",
-  obstAlt:      "#ffcc5c",
-  heliBody:     "#e8e4dc",
-  heliTrim:     "#c9a84c",
-  heliCockpit:  "#7ab8ff",
-  thrustGlow:   "rgba(77,217,255,0.55)",
-  trailBase:    "rgba(150,200,255,",
-  particleHoop: "#c9a84c",
-  particleHit:  "#ff9f43",
+  bgTop:        "#060210",
+  bgMid:        "#0a0e26",
+  wallDark:     "#0c1040",
+  wallMid:      "#1e4490",
+  wallLight:    "#2870cc",
+  wallEdge:     "rgba(60,150,255,0.95)",
+  hoopStroke:   "#f5c830",
+  hoopGlow:     "rgba(245,200,48,0.75)",
+  hoopInner:    "rgba(245,200,48,0.20)",
+  obstFill:     "#ff4820",
+  obstGlow:     "rgba(255,72,32,0.65)",
+  obstAlt:      "#ffec40",
+  heliBody:     "#eeeadc",
+  heliTrim:     "#f5c830",
+  heliCockpit:  "#70ccff",
+  thrustGlow:   "rgba(80,225,255,0.80)",
+  trailBase:    "rgba(170,225,255,",
+  particleHoop: "#f5c830",
+  particleHit:  "#ff4820",
   hudText:      "#ffffff",
-  hudMuted:     "rgba(255,255,255,0.55)",
-  gridLine:     "rgba(26,58,92,0.22)",
-  bannerBg:     "rgba(7,16,24,0.93)",
+  hudMuted:     "rgba(255,255,255,0.65)",
+  gridLine:     "rgba(60,90,200,0.20)",
+  bannerBg:     "rgba(5,2,16,0.96)",
 };
 
 // ── DOM REFS ──────────────────────────────────────────────────────────────────
 
 const canvas             = document.getElementById("game-canvas");
 const ctx                = canvas.getContext("2d");
+const ptiLogoImg         = new Image();
+let   ptiLogoReady       = false;
+ptiLogoImg.onload        = () => { ptiLogoReady = true; };
+ptiLogoImg.src           = './pti-logo.png';
 const scoreValue         = document.getElementById("score-value");
-const modeValue          = document.getElementById("mode-value");
+// modeValue removed — Mode pill deleted from HUD
 const lifeValue          = document.getElementById("life-value");
 const bestValue          = document.getElementById("best-value");
-const weekLabel          = document.getElementById("week-label");
+const missilesValue      = document.getElementById("missiles-value");
 const startOverlay       = document.getElementById("start-overlay");
 const gameOverOverlay    = document.getElementById("game-over-overlay");
 const startButton        = document.getElementById("start-button");
@@ -68,9 +72,9 @@ const LEVEL_DEFS = [
   {
     id: 1, name: "Level 1: Print Run",
     subtitle: "Thread the hoops",
-    instruction: "Fly through the glowing rings for +100 bonus points. Dodge flying t-shirts. Grab the heart for an extra life!",
+    instruction: "Fly through the glowing rings for +100 bonus points. Dodge flying t-shirts. Grab rapid gun drops to clear obstacles.",
     completionScore: 900,
-    obstacleTypes: ["hoop", "tshirt", "extralife", "missile"],
+    obstacleTypes: ["hoop", "tshirt", "extralife", "missile", "caveburst"],
     hoopWeight: 0.55,
     baseSpeed: 108, baseGap: 470,
     color: "#4dd9ff",
@@ -78,10 +82,10 @@ const LEVEL_DEFS = [
   {
     id: 2, name: "Level 2: Shop Floor",
     subtitle: "Dodge the press",
-    instruction: "T-shirts and DTF rolls flying at you — dodge them or lose a life. Rings give bonus. Hearts give life!",
+    instruction: "T-shirts and DTF rolls flying at you — dodge them or lose a life. Rapid gun drops can clear a path.",
     completionScore: 1400,
-    obstacleTypes: ["hoop", "tshirt", "vinyl", "extralife", "missile", "caveshield", "caveburst"],
-    hoopWeight: 0.25,
+    obstacleTypes: ["hoop", "tshirt", "tshirt", "vinyl", "inkblob", "heatpress", "drone", "extralife", "missile", "caveshield", "caveburst"],
+    hoopWeight: 0.15,
     baseSpeed: 128, baseGap: 435,
     color: "#ff9f43",
   },
@@ -90,7 +94,7 @@ const LEVEL_DEFS = [
     subtitle: "Survive as long as you can",
     instruction: "All obstacles, full speed. Grab the heart for an extra life. Collect hoops, dodge everything else.",
     completionScore: 1800,
-    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "inkblob", "rock", "extralife", "missile", "caveshield", "caveburst"],
     baseSpeed: 152, baseGap: 392,
     color: "#ffcc5c",
     verticalMovement: true,
@@ -99,11 +103,11 @@ const LEVEL_DEFS = [
   {
     id: 4, name: "Deadline Crunch",
     subtitle: "Nothing stays still",
-    instruction: "Maximum speed, moving obstacles, tighter cave. Shoot the drones with your gun! Grab hearts when you can!",
+    instruction: "Maximum speed, moving obstacles, tighter cave. Rapid gun bursts can blast through the big wall rocks.",
     completionScore: 2500,
-    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "tshirt", "vinyl", "heatpress", "drone", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.3,
-    baseSpeed: 185, baseGap: 320,
+    baseSpeed: 185, baseGap: 352,
     color: "#ff4757",
     verticalMovement: true,
     droneWeight: 0.45,
@@ -113,9 +117,9 @@ const LEVEL_DEFS = [
     subtitle: "No mercy. Survive.",
     instruction: "Drones everywhere. Shoot them down or dodge them. Only the best survive the night shift.",
     completionScore: 3500,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.25,
-    baseSpeed: 210, baseGap: 310,
+    baseSpeed: 210, baseGap: 340,
     color: "#a29bfe",
     verticalMovement: true,
     droneWeight: 0.55,
@@ -125,9 +129,9 @@ const LEVEL_DEFS = [
     subtitle: "Beyond the limit.",
     instruction: "Drone swarms and brutal speed. Shoot what you can, dodge the rest. Every heart counts.",
     completionScore: 5000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.2,
-    baseSpeed: 235, baseGap: 295,
+    baseSpeed: 235, baseGap: 326,
     color: "#fd9644",
     verticalMovement: true,
     droneWeight: 0.60,
@@ -137,9 +141,9 @@ const LEVEL_DEFS = [
     subtitle: "This is the end.",
     instruction: "Maximum drone swarms. Shoot everything. Tightest cave. Only the best pilots finish The Final Press.",
     completionScore: 7000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.18,
-    baseSpeed: 260, baseGap: 278,
+    baseSpeed: 260, baseGap: 312,
     color: "#ff2255",
     verticalMovement: true,
     droneWeight: 0.65,
@@ -149,9 +153,9 @@ const LEVEL_DEFS = [
     subtitle: "The cave fights back.",
     instruction: "Tightest gaps yet. Drone swarms hunt you relentlessly. Use your missiles wisely.",
     completionScore: 9000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "heatpress", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.16,
-    baseSpeed: 285, baseGap: 260,
+    baseSpeed: 285, baseGap: 296,
     color: "#00e5ff",
     verticalMovement: true,
     droneWeight: 0.70,
@@ -161,9 +165,9 @@ const LEVEL_DEFS = [
     subtitle: "Almost nothing left.",
     instruction: "Barely any room to move. Drones everywhere. Only missiles and instinct will carry you through.",
     completionScore: 11000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.14,
-    baseSpeed: 308, baseGap: 245,
+    baseSpeed: 308, baseGap: 282,
     color: "#bf5fff",
     verticalMovement: true,
     droneWeight: 0.75,
@@ -173,9 +177,9 @@ const LEVEL_DEFS = [
     subtitle: "Only legends reach this.",
     instruction: "The ultimate run. Maximum speed, minimum space. Survive long enough and your name is permanent.",
     completionScore: 14000,
-    obstacleTypes: ["hoop", "drone", "drone", "drone", "inkblob", "extralife", "missile", "caveshield", "caveburst"],
+    obstacleTypes: ["hoop", "drone", "drone", "drone", "inkblob", "rock", "rock", "extralife", "missile", "caveshield", "caveburst"],
     hoopWeight: 0.12,
-    baseSpeed: 330, baseGap: 230,
+    baseSpeed: 330, baseGap: 268,
     color: "#ffd700",
     verticalMovement: true,
     droneWeight: 0.80,
@@ -390,10 +394,18 @@ function getSpeedForScore(score) {
 function getGapForScore(score) {
   const base      = LEVEL_DEFS[gameState.levelIndex].baseGap;
   const wideStart = 520; // all levels start with a generous opening
-  // Smoothly narrow from wideStart → base over the first 300 pts of each level
-  if (score < 300) {
-    const t = score / 300;
+  // Smoothly narrow from wideStart to base. Level 4+ eases in over a longer run.
+  const lateLevel = gameState.levelIndex >= 3;
+  const shrinkDistance = lateLevel ? 520 : 300;
+  if (score < shrinkDistance) {
+    const t = score / shrinkDistance;
     return Math.round(wideStart - (wideStart - base) * t);
+  }
+  if (lateLevel) {
+    if (score < 760) return base;
+    if (score < 1000) return base - 10;
+    if (score < 1240) return base - 18;
+    return base - 26;
   }
   if (score < 500) return base;
   if (score < 700) return base - 18;
@@ -495,7 +507,7 @@ function spawnFloater() {
     if (Math.random() < hoopWeight) {
       type = "hoop";
     } else {
-      const nonSpecial = nonHoop.filter(t => t !== "extralife" && t !== "missile");
+      const nonSpecial = nonHoop.filter(t => t !== "extralife" && t !== "missile" && t !== "caveshield" && t !== "caveburst");
       // Hearts per level: 1/1/1/2/3/4/4/4/4/4
       const maxHearts   = [1, 1, 1, 2, 3, 4, 4, 4, 4, 4][gameState.levelIndex] ?? 1;
       const heartGap    = 600;
@@ -534,7 +546,7 @@ function spawnFloater() {
         type = "caveshield";
       } else if (allowed.includes("caveburst")
           && gameState.burstsSpawnedThisLevel < 1
-          && gameState.displayedScore - gameState.lastBurstScore >= 1100
+          && gameState.displayedScore - gameState.lastBurstScore >= (gameState.levelIndex < 2 ? 450 : 1100)
           && anySep
           && Math.random() < 0.09) {
         gameState.burstsSpawnedThisLevel++;
@@ -594,6 +606,21 @@ function spawnFloater() {
     floaters.push({ type, cx, cy, baseCy: cy, vertAmp: 22, vertFreq: 1.1, w: 30, h: 30, rotation: 0, rotSpeed: 0.6, phase: Math.random() * Math.PI * 2, collected: false });
   } else if (type === "caveburst") {
     floaters.push({ type, cx, cy, baseCy: cy, vertAmp: 22, vertFreq: 1.1, w: 30, h: 30, rotation: 0, rotSpeed: 0.9, phase: Math.random() * Math.PI * 2, collected: false });
+  } else if (type === "rock") {
+    const fromTop = Math.random() < 0.5;
+    const caveH = b.floor - b.ceiling;
+    const maxRockH = Math.max(0, caveH - 72);
+    if (maxRockH < 30) return;
+    const rockH = maxRockH * (0.52 + Math.random() * 0.15);
+    const rockW = 88 + Math.random() * 38;
+    const rockCy = fromTop ? b.ceiling + rockH / 2 : b.floor - rockH / 2;
+    // Pre-bake jagged profile (7 tip points) so shape is stable each frame
+    const cols = 7;
+    const jitterPts = [];
+    for (let i = 0; i <= cols; i++) {
+      jitterPts.push((i === 0 || i === cols) ? 0 : (Math.random() - 0.5) * rockH * 0.38);
+    }
+    floaters.push({ type, cx, cy: rockCy, baseCy: rockCy, vertAmp: 0, vertFreq: 0, w: rockW, h: rockH, rotation: 0, rotSpeed: 0, phase: 0, fromTop, jitterPts, collected: false });
   }
 }
 
@@ -631,6 +658,53 @@ function getHelicopterHitbox() {
 function intersects(a, b) {
   return a.x < b.x + b.width && a.x + a.width > b.x &&
          a.y < b.y + b.height && a.y + a.height > b.y;
+}
+
+function isDestructibleFloater(f) {
+  return f && !f.collected &&
+    f.type !== "extralife" &&
+    f.type !== "hoop" &&
+    f.type !== "missile" &&
+    f.type !== "caveshield" &&
+    f.type !== "caveburst";
+}
+
+function projectileHitsFloater(projectile, f, radius) {
+  const fb = getFloaterHitbox(f);
+  return projectile.x >= fb.x - radius &&
+         projectile.x <= fb.x + fb.width + radius &&
+         projectile.y >= fb.y - radius &&
+         projectile.y <= fb.y + fb.height + radius;
+}
+
+function getFloaterAimPoint(f) {
+  if (f.type === "rock") {
+    return { x: f.cx, y: f.fromTop ? f.cy + f.h / 2 : f.cy - f.h / 2 };
+  }
+  return { x: f.cx, y: f.cy };
+}
+
+function getNearestDestructibleAhead() {
+  let target = null;
+  let nearestX = Infinity;
+  for (const f of floaters) {
+    if (!isDestructibleFloater(f) || f.cx <= helicopter.x + 24) continue;
+    if (f.cx < nearestX) {
+      target = f;
+      nearestX = f.cx;
+    }
+  }
+  return target;
+}
+
+function destroyFloaterAt(index, points, colorA, colorB) {
+  const f = floaters[index];
+  spawnParticles(f.cx, f.cy, colorA, 24);
+  spawnParticles(f.cx, f.cy, colorB, 16);
+  if (f.type === "rock") spawnParticles(f.cx, f.cy, "#ffffff", 14);
+  scorePopups.push({ x: f.cx, y: f.cy - 18, text: `+${points}`, life: 1.1 });
+  gameState.bonusScore += points;
+  floaters.splice(index, 1);
 }
 
 function collidesWithCave() {
@@ -815,7 +889,6 @@ function resetGame(fullReset = true) {
   gameState.lastAnySpecialScore = -9999;
 
   scoreValue.textContent = "0";
-  modeValue.textContent  = "Fly";
   lifeValue.textContent  = String(gameState.lives);
 
   resetCave();
@@ -893,6 +966,7 @@ function startNextLevel() {
   }
   gameState.levelIndex += 1;
   gameState.missiles   += 1;  // +1 missile awarded each new level
+  updateCaveFireBtn();
   resetGame(false);
   gameState.status = "running";
   startOverlay.classList.add("hidden");
@@ -936,7 +1010,6 @@ function getFallbackComment(score) {
 function setThrust(active) {
   if (gameState.status === "idle" && active) startGame();
   helicopter.thrusting = active && gameState.status === "running";
-  modeValue.textContent = helicopter.thrusting ? "Boost" : "Glide";
 }
 
 // ── MAIN UPDATE ───────────────────────────────────────────────────────────────
@@ -944,7 +1017,7 @@ function setThrust(active) {
 function update(delta) {
   if (gameState.status === "boss") { updateBossArena(delta); return; }
   if (gameState.status !== "running") return;
-  if (gameState.pausedByBlur || document.hidden || !document.hasFocus()) return;
+  if (gameState.pausedByBlur || document.hidden) return;
 
   gameState.speed = getSpeedForScore(gameState.displayedScore);
   gameState.distance += gameState.speed * delta;
@@ -1038,15 +1111,10 @@ function update(delta) {
     // Missiles pierce — check every missile vs every destructible obstacle each frame
     for (let fi = floaters.length - 1; fi >= 0; fi--) {
       const f = floaters[fi];
-      if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.collected) continue;
+      if (!isDestructibleFloater(f)) continue;
       for (const m of caveBullets) {
-        if (Math.abs(m.x - f.cx) < f.w / 2 + 16 && Math.abs(m.y - f.cy) < f.h / 2 + 16) {
-          spawnParticles(f.cx, f.cy, "#ff5500", 32);
-          spawnParticles(f.cx, f.cy, "#ffcc00", 22);
-          spawnParticles(f.cx, f.cy, "#ffffff", 10);
-          scorePopups.push({ x: f.cx, y: f.cy - 22, text: "+150", life: 1.3 });
-          gameState.bonusScore += 150;
-          floaters.splice(fi, 1);
+        if (projectileHitsFloater(m, f, 18)) {
+          destroyFloaterAt(fi, 150, "#ff5500", "#ffcc00");
           break;
         }
       }
@@ -1057,7 +1125,12 @@ function update(delta) {
   if (gameState.caveBurst > 0) {
     gameState.caveBurstFireTimer -= delta;
     if (gameState.caveBurstFireTimer <= 0) {
-      burstBullets.push({ x: helicopter.x + 28, y: helicopter.y + (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 20 });
+      const target = getNearestDestructibleAhead();
+      const origin = { x: helicopter.x + 28, y: helicopter.y + (Math.random() - 0.5) * 8 };
+      const aim = target ? getFloaterAimPoint(target) : { x: origin.x + 160, y: origin.y + (Math.random() - 0.5) * 10 };
+      const travelTime = Math.max(0.16, (aim.x - origin.x) / 580);
+      const vy = clamp((aim.y - origin.y) / travelTime, -420, 420);
+      burstBullets.push({ x: origin.x, y: origin.y, vy });
       gameState.caveBurstFireTimer = 0.055; // ~18 shots/sec
     }
   }
@@ -1067,19 +1140,15 @@ function update(delta) {
     burstBullets[bi].y  += burstBullets[bi].vy * delta;
     if (burstBullets[bi].x > WORLD_WIDTH + 20) burstBullets.splice(bi, 1);
   }
-  // Burst bullets destroy all non-special obstacles
+  // Burst bullets destroy every obstacle, including wall rocks, but not pickups or hoops.
   for (let fi = floaters.length - 1; fi >= 0; fi--) {
     const f = floaters[fi];
-    if (f.type === "extralife" || f.type === "hoop" || f.type === "missile" || f.type === "caveshield" || f.type === "caveburst" || f.collected) continue;
+    if (!isDestructibleFloater(f)) continue;
     for (let bi = burstBullets.length - 1; bi >= 0; bi--) {
       const b = burstBullets[bi];
-      if (Math.abs(b.x - f.cx) < f.w / 2 + 10 && Math.abs(b.y - f.cy) < f.h / 2 + 10) {
-        spawnParticles(f.cx, f.cy, "#ffcc33", 18);
-        spawnParticles(f.cx, f.cy, "#ff8800", 10);
-        scorePopups.push({ x: f.cx, y: f.cy - 18, text: "+80", life: 1.0 });
-        gameState.bonusScore += 80;
+      if (projectileHitsFloater(b, f, 14)) {
+        destroyFloaterAt(fi, 80, "#ffcc33", "#ff8800");
         burstBullets.splice(bi, 1);
-        floaters.splice(fi, 1);
         break;
       }
     }
@@ -1098,7 +1167,6 @@ function update(delta) {
   }
   checkFloaterCollisions();
 
-  modeValue.textContent = helicopter.thrusting ? "Boost" : "Glide";
   updateCaveFireBtn();
   updatePauseBtn();
 }
@@ -1106,7 +1174,9 @@ function update(delta) {
 // ── DRAW: BACKGROUND ─────────────────────────────────────────────────────────
 
 function drawBackground() {
-  // Base gradient
+  const levelColor = LEVEL_DEFS[gameState.levelIndex]?.color || "#4dd9ff";
+
+  // Base gradient — subtly shifted toward level colour at midpoint
   const bg = ctx.createLinearGradient(0, 0, 0, WORLD_HEIGHT);
   bg.addColorStop(0,   C.bgTop);
   bg.addColorStop(0.5, C.bgMid);
@@ -1114,8 +1184,17 @@ function drawBackground() {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-  // Subtle depth grid
-  ctx.strokeStyle = "rgba(40,80,120,0.10)";
+  // Level-coloured side glow (left + right edges)
+  const sideGlow = ctx.createLinearGradient(0, 0, WORLD_WIDTH, 0);
+  sideGlow.addColorStop(0,    `${levelColor}28`);
+  sideGlow.addColorStop(0.22, "rgba(0,0,0,0)");
+  sideGlow.addColorStop(0.78, "rgba(0,0,0,0)");
+  sideGlow.addColorStop(1,    `${levelColor}28`);
+  ctx.fillStyle = sideGlow;
+  ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+
+  // Grid lines tinted to level colour
+  ctx.strokeStyle = `${levelColor}1a`;
   ctx.lineWidth = 1;
   for (let x = 0; x < WORLD_WIDTH; x += 36) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, WORLD_HEIGHT); ctx.stroke();
@@ -1124,12 +1203,11 @@ function drawBackground() {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD_WIDTH, y); ctx.stroke();
   }
 
-  // Level-tinted radial vignette in the centre
-  const levelColor = LEVEL_DEFS[gameState.levelIndex]?.color || "#4dd9ff";
-  const vign = ctx.createRadialGradient(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 40, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 280);
-  vign.addColorStop(0,   "rgba(0,0,0,0)");
-  vign.addColorStop(0.6, "rgba(0,0,0,0)");
-  vign.addColorStop(1,   `${levelColor}18`);
+  // Strong radial glow from centre in level colour
+  const vign = ctx.createRadialGradient(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 20, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 280);
+  vign.addColorStop(0,   `${levelColor}30`);
+  vign.addColorStop(0.45, `${levelColor}0c`);
+  vign.addColorStop(1,   "rgba(0,0,0,0)");
   ctx.fillStyle = vign;
   ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 }
@@ -1137,10 +1215,14 @@ function drawBackground() {
 // ── DRAW: CAVE ────────────────────────────────────────────────────────────────
 
 function drawCave() {
-  // Outer border glow
-  ctx.strokeStyle = "rgba(58,104,152,0.6)";
+  // Outer border glow — level-coloured
+  const lvBorder = LEVEL_DEFS[gameState.levelIndex]?.color || "#4dd9ff";
+  ctx.strokeStyle = `${lvBorder}70`;
   ctx.lineWidth   = 2;
+  ctx.shadowColor = lvBorder;
+  ctx.shadowBlur  = 8;
   ctx.strokeRect(8, 8, WORLD_WIDTH - 16, WORLD_HEIGHT - 16);
+  ctx.shadowBlur  = 0;
 
   for (let i = 0; i < cave.ceiling.length; i++) {
     const x       = i * COLUMN_WIDTH - cave.offset;
@@ -1185,72 +1267,45 @@ function drawCave() {
 // ── DRAW: FLOATERS ────────────────────────────────────────────────────────────
 
 function drawHoop(f) {
-  // Golden coin
+  // PTI Logo collectible
   ctx.save();
   ctx.translate(f.cx, f.cy);
-  const r = f.radius;
+  const r     = f.radius;
+  const pulse = 0.7 + 0.3 * Math.sin(f.phase * 2.8);
+  const size  = r * 2.6;
 
-  // Outer glow pulse
-  const pulse = 0.75 + 0.25 * Math.sin(f.phase * 2.8);
+  // Gold pulsing glow ring behind logo
   ctx.shadowColor = "#ffd700";
-  ctx.shadowBlur  = 20 * pulse;
-
-  // Coin edge — slightly taller ellipse to give 3D thickness illusion
-  ctx.fillStyle = "#a06800";
+  ctx.shadowBlur  = 28 * pulse;
+  ctx.strokeStyle = `rgba(255,215,0,${0.35 * pulse})`;
+  ctx.lineWidth   = 2.5;
   ctx.beginPath();
-  ctx.ellipse(0, r * 0.12, r, r * 0.18, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Main coin face — gold radial gradient
-  const coinG = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 0, 0, 0, r);
-  coinG.addColorStop(0,    "#fff0a0");
-  coinG.addColorStop(0.25, "#ffd700");
-  coinG.addColorStop(0.6,  "#c9a84c");
-  coinG.addColorStop(1,    "#7a5800");
-  ctx.fillStyle = coinG;
-  ctx.beginPath();
-  ctx.arc(0, 0, r, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Rim edge ring
-  ctx.shadowBlur  = 0;
-  ctx.strokeStyle = "#a06800";
-  ctx.lineWidth   = 1.5;
-  ctx.beginPath();
-  ctx.arc(0, 0, r - 1, 0, Math.PI * 2);
+  ctx.arc(0, 0, r + 3, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.shadowBlur = 0;
 
-  // Knurled edge marks (short tick lines around perimeter)
-  ctx.strokeStyle = "rgba(100,60,0,0.4)";
-  ctx.lineWidth   = 1;
-  const ticks = 18;
-  for (let i = 0; i < ticks; i++) {
-    const a = (i / ticks) * Math.PI * 2;
+  if (ptiLogoReady) {
+    // Invert the black-on-white logo → white-on-black, then screen-composite
+    // so the black bg vanishes and the white logo glows on the cave
+    ctx.shadowColor = "#ffd700";
+    ctx.shadowBlur  = 18 * pulse;
+    ctx.filter      = "invert(1) sepia(1) saturate(4) hue-rotate(5deg)";
+    ctx.globalCompositeOperation = "screen";
+    ctx.drawImage(ptiLogoImg, -size / 2, -size / 2, size, size);
+    ctx.globalCompositeOperation = "source-over";
+    ctx.filter      = "none";
+    ctx.shadowBlur  = 0;
+  } else {
+    // Fallback gold circle until image loads
+    const coinG = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 0, 0, 0, r);
+    coinG.addColorStop(0,   "#fff0a0");
+    coinG.addColorStop(0.5, "#ffd700");
+    coinG.addColorStop(1,   "#7a5800");
+    ctx.fillStyle = coinG;
     ctx.beginPath();
-    ctx.moveTo(Math.cos(a) * (r - 2.5), Math.sin(a) * (r - 2.5));
-    ctx.lineTo(Math.cos(a) * (r - 0.5), Math.sin(a) * (r - 0.5));
-    ctx.stroke();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
   }
-
-  // Inner embossed circle
-  ctx.strokeStyle = "rgba(255,240,120,0.5)";
-  ctx.lineWidth   = 1;
-  ctx.beginPath();
-  ctx.arc(0, 0, r * 0.62, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // "$" symbol in centre
-  ctx.fillStyle    = "rgba(120,70,0,0.75)";
-  ctx.font         = `bold ${Math.round(r * 0.85)}px Trebuchet MS`;
-  ctx.textAlign    = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("$", 0, 0);
-
-  // Highlight glint (top-left)
-  ctx.fillStyle = "rgba(255,255,255,0.45)";
-  ctx.beginPath();
-  ctx.ellipse(-r * 0.28, -r * 0.32, r * 0.28, r * 0.14, -0.5, 0, Math.PI * 2);
-  ctx.fill();
 
   ctx.restore();
 }
@@ -1709,6 +1764,69 @@ function drawCaveBurstPickup(f) {
   ctx.restore();
 }
 
+function drawRock(f) {
+  const { cx, cy, w, h, fromTop, jitterPts } = f;
+  const left  = cx - w / 2;
+  const right = cx + w / 2;
+  const wallY = fromTop ? cy - h / 2 : cy + h / 2; // attached to cave wall
+  const tipY  = fromTop ? cy + h / 2 : cy - h / 2; // jagger edge into the gap
+  const cols  = jitterPts ? jitterPts.length - 1 : 7;
+  const lvColor = LEVEL_DEFS[gameState.levelIndex]?.color || "#4dd9ff";
+
+  // Build jagged tip profile
+  const pts = [];
+  for (let i = 0; i <= cols; i++) {
+    const t  = i / cols;
+    const px = left + t * w;
+    pts.push({ x: px, y: tipY + (jitterPts ? jitterPts[i] : 0) });
+  }
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(left, wallY);
+  for (const p of pts) ctx.lineTo(p.x, p.y);
+  ctx.lineTo(right, wallY);
+  ctx.closePath();
+
+  // Same gradient direction as the cave wall it grows from
+  const g0 = fromTop ? wallY : tipY;
+  const g1 = fromTop ? tipY  : wallY;
+  const grad = ctx.createLinearGradient(0, g0, 0, g1);
+  if (fromTop) {
+    grad.addColorStop(0,   C.wallDark);
+    grad.addColorStop(0.6, C.wallMid);
+    grad.addColorStop(1,   C.wallLight);
+  } else {
+    grad.addColorStop(0,   C.wallLight);
+    grad.addColorStop(0.4, C.wallMid);
+    grad.addColorStop(1,   C.wallDark);
+  }
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Scan lines — same texture as cave walls
+  ctx.fillStyle = "rgba(0,0,0,0.07)";
+  const scanStep = 11;
+  const yMin = Math.min(wallY, tipY);
+  const yMax = Math.max(wallY, tipY);
+  for (let y = yMin + 3; y < yMax - 2; y += scanStep) {
+    ctx.fillRect(left, y, w, 2);
+  }
+
+  // Bright level-coloured glow strip along the jagged tip edge — same as cave edge strips
+  ctx.shadowColor = lvColor;
+  ctx.shadowBlur  = 8;
+  ctx.strokeStyle = lvColor + "cc";
+  ctx.lineWidth   = 3;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i <= cols; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  ctx.restore();
+}
+
 function drawFloaters() {
   for (const f of floaters) {
     if (f.collected) continue;
@@ -1722,6 +1840,7 @@ function drawFloaters() {
     else if (f.type === "inkblob")     drawInkBlob(f);
     else if (f.type === "caveshield")  drawCaveShieldPickup(f);
     else if (f.type === "caveburst")   drawCaveBurstPickup(f);
+    else if (f.type === "rock")        drawRock(f);
   }
 }
 
@@ -2432,7 +2551,7 @@ function updateBossArena(delta) {
     A.powerupTimer -= delta;
     if (A.powerupTimer <= 0 && A.powerups.length === 0) {
       const type = Math.random() < 0.5 ? "shield" : "burst";
-      A.powerups.push({ type, x: 40 + Math.random() * (WORLD_WIDTH - 80), y: -18, vy: 88 });
+      A.powerups.push({ type, x: 40 + Math.random() * (WORLD_WIDTH - 80), y: -18, vy: 55 });
       A.powerupTimer = Math.max(7, 18 - A.bossIndex * 1.6);
     }
     for (let i = A.powerups.length - 1; i >= 0; i--) {
@@ -2530,6 +2649,7 @@ function updateBossArena(delta) {
         gameState.lives   += 1;
         gameState.missiles += 1;
         lifeValue.textContent = String(gameState.lives);
+        updateCaveFireBtn();
         scorePopups.push({ x: WORLD_WIDTH / 2, y: WORLD_HEIGHT / 2 - 50, text: "+LIFE  +MISSILE", life: 2.0 });
       }
     }
@@ -2641,20 +2761,27 @@ function renderBossArena() {
   if (!bossArena) return;
   const A = bossArena;
 
-  // Background — deep space
+  // Background — deep space with boss colour atmosphere
   ctx.fillStyle = "#06080f";
   ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+  const bossCol = A.def.color || "#4dd9ff";
+  const bossAtm = ctx.createRadialGradient(WORLD_WIDTH / 2, WORLD_HEIGHT * 0.28, 10, WORLD_WIDTH / 2, WORLD_HEIGHT * 0.28, WORLD_HEIGHT * 0.75);
+  bossAtm.addColorStop(0,   `${bossCol}2a`);
+  bossAtm.addColorStop(0.5, `${bossCol}10`);
+  bossAtm.addColorStop(1,   "rgba(0,0,0,0)");
+  ctx.fillStyle = bossAtm;
+  ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-  // Stars
+  // Stars — tinted slightly to boss colour
   for (const s of A.stars) {
     ctx.globalAlpha = s.a * (0.5 + 0.5 * Math.sin(A.boss.phase * 1.4 + s.x));
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = s.x % 3 === 0 ? bossCol : "#ffffff";
     ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
   }
   ctx.globalAlpha = 1;
 
-  // Arena floor/ceiling grid lines
-  ctx.strokeStyle = "rgba(77,217,255,0.07)";
+  // Arena grid lines tinted to boss colour
+  ctx.strokeStyle = `${bossCol}12`;
   ctx.lineWidth = 1;
   for (let y = 0; y < WORLD_HEIGHT; y += 40) {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD_WIDTH, y); ctx.stroke();
@@ -3374,14 +3501,14 @@ async function fetchClaudeComment(score, level, hoops, hits) {
 // ── LEADERBOARD ───────────────────────────────────────────────────────────────
 
 function rankLabel(i) {
-  if (i < 2)  return "Prize Winner";
-  if (i < 10) return "Giveaway Entry";
+  if (i === 0) return "Major Prize";
+  if (i < 10)  return "Prize Draw Entry";
   return "Submitted";
 }
 
 function badgeClass(i) {
-  if (i < 2)  return "champion";
-  if (i < 10) return "raffle";
+  if (i === 0) return "champion";
+  if (i < 10)  return "raffle";
   return "standard";
 }
 
@@ -3396,7 +3523,7 @@ function renderLeaderboard() {
     return;
   }
   leaderboardBody.innerHTML = entries.map((e, i) => `
-    <tr class="${i < 2 ? "champion" : i < 10 ? "raffle" : ""}">
+    <tr class="${i === 0 ? "champion" : i < 10 ? "raffle" : ""}">
       <td>#${i + 1}</td>
       <td>${sanitizeText(e.name)}</td>
       <td>${e.score}</td>
@@ -3404,17 +3531,35 @@ function renderLeaderboard() {
     </tr>`).join("");
 }
 
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbwBBaFdetFrzqHDl9T6wJAEsaSihyQF5eXCCc1iwy8Fk2OVEV-Y5HQ1ZuB-HPdQRm1j/exec";
+
 function submitScore(name, email, score) {
-  const entries = loadWeeklyScores();
-  entries.push({
+  const entry = {
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     name: name.trim(),
     email: email.trim(),
     score,
     createdAt: new Date().toISOString(),
-  });
+  };
+  const entries = loadWeeklyScores();
+  entries.push(entry);
   saveWeeklyScores(entries);
   renderLeaderboard();
+
+  // Send to Google Sheet
+  fetch(SHEETS_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: entry.name,
+      email: entry.email,
+      score: entry.score,
+      best: gameState.best,
+      submitted_at: entry.createdAt,
+      source: "github-pages",
+    }),
+  }).catch(() => {}); // silent fail — local save already happened
 }
 
 // ── EXPORT ────────────────────────────────────────────────────────────────────
@@ -3473,9 +3618,10 @@ function updateCaveFireBtn() {
   cavFireBtn.classList.toggle("hidden", !show);
   if (show) {
     const count = gameState.missiles;
-    cavFireBtn.textContent = count > 0 ? `🚀 ×${count}` : "–";
+    cavFireBtn.textContent   = count > 0 ? `🚀 FIRE` : "– FIRE";
     cavFireBtn.style.opacity = count > 0 ? "1" : "0.4";
   }
+  missilesValue.textContent = String(gameState.missiles);
 }
 
 const pauseBtn = document.getElementById("pause-btn");
@@ -3508,16 +3654,13 @@ function canvasCoords(e) {
 
 canvas.addEventListener("pointerdown", (e) => {
   e.preventDefault();
-  if (gameState.pausedByBlur && (gameState.status === "running" || gameState.status === "boss")) {
-    gameState.pausedByBlur = false;
-    lastFrame = performance.now();
-    return;
-  }
+  if (gameState.pausedByBlur) return; // only pause btn can unpause
   if (gameState.status === "boss" && bossArena) {
     const c = canvasCoords(e);
-    bossArena.joyAnchor   = { x: c.x, y: c.y };
-    bossArena.joyPos      = { x: c.x, y: c.y };
-    bossArena.touchActive = true;
+    bossArena.joyAnchor    = { x: c.x, y: c.y };
+    bossArena.joyPos       = { x: c.x, y: c.y };
+    bossArena.touchActive  = true;
+    bossArena.joyPointerId = e.pointerId;
     canvas.setPointerCapture(e.pointerId);
     return;
   }
@@ -3525,21 +3668,23 @@ canvas.addEventListener("pointerdown", (e) => {
 });
 
 canvas.addEventListener("pointermove", (e) => {
-  if (gameState.status === "boss" && bossArena && bossArena.touchActive) {
+  if (gameState.status === "boss" && bossArena && bossArena.touchActive
+      && e.pointerId === bossArena.joyPointerId) {
     bossArena.joyPos = canvasCoords(e);
   }
 });
 
 function clearBossTouch() {
   if (bossArena) {
-    bossArena.touchActive = false;
-    bossArena.joyAnchor   = null;
-    bossArena.joyPos      = null;
+    bossArena.touchActive  = false;
+    bossArena.joyAnchor    = null;
+    bossArena.joyPos       = null;
+    bossArena.joyPointerId = null;
   }
 }
-canvas.addEventListener("pointerup",     () => { clearBossTouch(); setThrust(false); });
-canvas.addEventListener("pointerleave",  () => { clearBossTouch(); setThrust(false); });
-canvas.addEventListener("pointercancel", () => { clearBossTouch(); setThrust(false); });
+canvas.addEventListener("pointerup",     (e) => { if (e.pointerId === bossArena?.joyPointerId) clearBossTouch(); setThrust(false); });
+canvas.addEventListener("pointerleave",  ()  => { setThrust(false); });
+canvas.addEventListener("pointercancel", (e) => { if (e.pointerId === bossArena?.joyPointerId) clearBossTouch(); setThrust(false); });
 window.addEventListener("pointerup",     () => setThrust(false));
 
 window.addEventListener("keydown", (e) => {
@@ -3554,8 +3699,8 @@ window.addEventListener("keyup", (e) => {
   if (e.code === "Space") { e.preventDefault(); setThrust(false); }
 });
 
-window.addEventListener("blur",  () => { gameState.pausedByBlur = true;  setThrust(false); });
-window.addEventListener("focus", () => { gameState.pausedByBlur = false; lastFrame = performance.now(); });
+window.addEventListener("blur",  () => { setThrust(false); });
+window.addEventListener("focus", () => { if (!gameState.pausedByBlur) lastFrame = performance.now(); });
 
 // Boss ready button
 document.getElementById("boss-ready-btn").addEventListener("click", () => {
@@ -3569,8 +3714,8 @@ document.getElementById("boss-ready-btn").addEventListener("click", () => {
   updatePauseBtn();
 });
 
-// D-pad + fire touch controls for boss fight
-[["btn-up","ArrowUp"],["btn-down","ArrowDown"],["btn-left","ArrowLeft"],["btn-right","ArrowRight"],["btn-fire"," "]].forEach(([id, key]) => {
+// Fire button touch control for boss fight (movement handled by canvas joystick)
+[["btn-fire"," "]].forEach(([id, key]) => {
   const el = document.getElementById(id);
   el.addEventListener("pointerdown",  (e) => { e.preventDefault(); bossKeys[key] = true;  });
   el.addEventListener("pointerup",    (e) => { e.preventDefault(); delete bossKeys[key];  });
@@ -3586,17 +3731,6 @@ document.getElementById("btn-swap").addEventListener("pointerdown", (e) => {
   }
 });
 
-// Pause when clicking anywhere outside the game canvas
-document.addEventListener("pointerdown", (e) => {
-  if (e.target === canvas) return;
-  if (e.target.closest("#boss-controls")) return;  // d-pad / fire / swap don't pause
-  if (e.target.closest("#cave-fire-btn")) return;  // missile button doesn't pause
-  if (e.target.closest("#pause-btn"))      return;  // pause button handles itself
-  if ((gameState.status === "running" || gameState.status === "boss") && !gameState.pausedByBlur) {
-    gameState.pausedByBlur = true;
-    setThrust(false);
-  }
-});
 
 document.addEventListener("visibilitychange", () => {
   gameState.pausedByBlur = document.hidden;
@@ -3614,18 +3748,20 @@ scoreForm.addEventListener("submit", (e) => {
   playerEmailInput.value     = "";
 });
 
-exportJsonButton.addEventListener("click", exportScoresAsJson);
-exportCsvButton.addEventListener("click",  exportScoresAsCsv);
+if (exportJsonButton) exportJsonButton.addEventListener("click", exportScoresAsJson);
+if (exportCsvButton) exportCsvButton.addEventListener("click",  exportScoresAsCsv);
 
-resetBoardButton.addEventListener("click", () => {
-  if (!window.confirm("Reset this week's leaderboard?")) return;
-  localStorage.removeItem(getWeekKey());
-  renderLeaderboard();
-});
+if (resetBoardButton) {
+  resetBoardButton.addEventListener("click", () => {
+    if (!window.confirm("Reset this week's leaderboard?")) return;
+    localStorage.removeItem(getWeekKey());
+    renderLeaderboard();
+  });
+}
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 
-weekLabel.textContent = formatWeekLabel();
+missilesValue.textContent = String(gameState.missiles);
 bestValue.textContent = String(gameState.best);
 renderLeaderboard();
 resetGame();
