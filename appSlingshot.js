@@ -1066,7 +1066,7 @@ function setupCanvasSize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   cssW = Math.max(320, rect.width || 960);
   cssH = Math.max(320, rect.height || 540);
-  worldW = Math.max(cssW, cssW * (mobile ? 1.95 : 1.55));
+  worldW = Math.max(cssW, cssW * (mobile ? 1.68 : 1.55));
   canvas.width = Math.round(cssW * dpr);
   canvas.height = Math.round(cssH * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
