@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#120a2a" />
+    <title>Ink Flight Rush | Pressed To Impress Giveaway Arcade</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./styles.css?v=caveflight-levels1" />
+  </head>
+  <body class="cave-flight-page">
+    <div class="app-shell cave-flight-shell">
+      <section class="hero-panel cave-flight-hero">
+        <section class="hero-copy cave-flight-copy">
+          <a class="delivery-back-link" href="./index.html">Back to Arcade</a>
+          <p class="eyebrow">Pressed To Impress Giveaway</p>
+          <h1>Pressed To Impress Ink Flight Rush</h1>
+          <p class="lede">
+            Fly as far as you can, earn Prize Points, and climb the monthly leaderboard.
+          </p>
+
+          <div class="reward-strip">
+            <div>
+              <span class="reward-label">1st Place</span>
+              <strong>Monthly Prize</strong>
+            </div>
+            <div>
+              <span class="reward-label">Places 2-10</span>
+              <strong>Prize Draw</strong>
+            </div>
+          </div>
+
+          <ul class="feature-list">
+            <li>Hold the mouse, touch, or spacebar to make the helicopter rise.</li>
+            <li>Release to fall and thread through tight routes.</li>
+            <li>Fly through paint rings for bonus points.</li>
+            <li>Avoid obstacles and use FIRE shots wisely.</li>
+            <li>Survive longer to increase your score and submit your best run.</li>
+          </ul>
+        </section>
+
+        <div class="game-card cave-flight-game-card">
+          <div class="game-frame cave-flight-frame">
+            <canvas id="game-canvas" width="960" height="540" aria-label="Pressed To Impress Ink Flight Rush game"></canvas>
+            <img class="cave-brand-logo" src="./pti-logo.png" alt="Pressed To Impress" draggable="false" />
+
+            <div class="cave-level-select-overlay" id="cave-level-select-overlay" role="dialog" aria-modal="true" aria-labelledby="cave-level-select-title">
+              <div class="cave-level-select-panel">
+                <button class="cave-level-back" id="cave-level-back" type="button">Back</button>
+                <p class="overlay-kicker">Ink Flight Rush</p>
+                <h2 id="cave-level-select-title">Choose Level</h2>
+                <p class="cave-level-select-copy">Complete each level to unlock the next.</p>
+                <div class="cave-level-grid" id="cave-level-grid" aria-label="Ink Flight Rush levels"></div>
+              </div>
+            </div>
+
+            <div class="start-overlay cave-flight-start-overlay hidden" id="start-overlay">
+              <div class="overlay-card cave-flight-start-card">
+                <p class="overlay-kicker" id="start-level-kicker">Ink Flight Rush</p>
+                <h2 id="start-level-title">Run The Perfect Print Route</h2>
+                <p>
+                  Hold to climb, release to drop, and guide the helicopter through shifting print-world routes while avoiding obstacles.
+                </p>
+                <button class="button primary" id="start-button" type="button">Start Level</button>
+                <p class="overlay-note">Hold mouse, touch, or space to rise. Release to fall.</p>
+              </div>
+            </div>
+
+            <div class="level-gate-overlay hidden" id="level-gate-overlay">
+              <div class="overlay-card cave-flight-start-card cave-result-panel cave-level-complete-panel">
+                <p class="overlay-kicker" id="gate-kicker">Level Complete</p>
+                <h2 id="gate-heading">Level 1 Done</h2>
+                <p id="gate-score" class="cave-flight-gate-score">Game Score: 0</p>
+                <div class="result_prize_summary cave-result-prize-summary cave-gate-prize-summary">
+                  <div>
+                    <span>Game Score</span>
+                    <strong id="gate-raw-score">0</strong>
+                  </div>
+                  <div>
+                    <span>Prize Points</span>
+                    <strong id="gate-prize-points">0</strong>
+                  </div>
+                  <div>
+                    <span>Best Prize Points</span>
+                    <strong id="gate-best-pp">0</strong>
+                  </div>
+                </div>
+                <div class="cave-flight-next-card">
+                  <p id="gate-next-label">Next Up</p>
+                  <strong id="gate-next-name">Level 2: Shop Floor</strong>
+                  <span id="gate-next-instruction">Instructions here</span>
+                </div>
+                <p class="result_rank_message" id="gate-rank-message"></p>
+                <form id="gate-score-form" class="score-form cave-score-form">
+                  <label>
+                    <span>Name</span>
+                    <input id="gate-player-name" name="name" type="text" maxlength="20" placeholder="Your display name" required />
+                  </label>
+                  <label>
+                    <span>Email</span>
+                    <input id="gate-player-email" name="email" type="email" maxlength="80" placeholder="you@example.com" required />
+                  </label>
+                  <div class="form-actions">
+                    <button class="button primary" type="submit">Submit Score</button>
+                    <button class="button ghost" id="gate-button" type="button">Next Level</button>
+                    <button class="button ghost" id="gate-replay-button" type="button">Replay Level</button>
+                    <button class="button ghost" id="gate-arcade-button" type="button">Back to Arcade</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div class="game-over-overlay hidden" id="game-over-overlay">
+              <div class="overlay-card cave-flight-start-card cave-result-panel">
+                <p class="overlay-kicker">Run Over</p>
+                <p class="cave-result-level" id="result-level-label">Level 1</p>
+                <h2 id="final-score-heading">Game Score: 0</h2>
+                <div class="result_prize_summary cave-result-prize-summary">
+                  <div>
+                    <span>Prize Points</span>
+                    <strong id="result-prize-points">0</strong>
+                  </div>
+                  <div>
+                    <span>Best Prize Points</span>
+                    <strong id="result-best-pp">0</strong>
+                  </div>
+                </div>
+                <p id="result-message">Submit your Prize Points to the monthly leaderboard.</p>
+                <p class="result_rank_message" id="result-rank-message"></p>
+
+                <form id="score-form" class="score-form">
+                  <label>
+                    <span>Name</span>
+                    <input id="player-name" name="name" type="text" maxlength="20" placeholder="Your display name" required />
+                  </label>
+                  <label>
+                    <span>Email</span>
+                    <input id="player-email" name="email" type="email" maxlength="80" placeholder="you@example.com" required />
+                  </label>
+                  <div class="form-actions">
+                    <button class="button primary" type="submit">Submit Score</button>
+                    <button class="button ghost" id="restart-button" type="button">Restart Level</button>
+                    <button class="button ghost" id="cave-result-arcade" type="button">Back to Arcade</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div class="cave-pause-overlay hidden" id="cave-pause-overlay" role="dialog" aria-modal="true" aria-labelledby="cave-pause-title">
+              <div class="cave-pause-menu">
+                <p class="cave-pause-kicker">Run paused</p>
+                <h2 id="cave-pause-title">PAUSED</h2>
+                <div class="cave-pause-actions">
+                  <button class="cave-pause-button primary" id="cave-pause-resume" type="button">Resume</button>
+                  <button class="cave-pause-button" id="cave-pause-restart" type="button">Restart Level</button>
+                  <button class="cave-pause-button" id="cave-pause-levels" type="button">Choose Level</button>
+                  <button class="cave-pause-button" id="cave-pause-arcade" type="button">Back to Arcade</button>
+                  <button class="cave-pause-button" id="cave-pause-sound" type="button">Sound On</button>
+                </div>
+              </div>
+            </div>
+
+            <button id="cave-fire-btn" class="cave-fire-btn hidden" type="button">FIRE</button>
+
+            <div class="hud-strip">
+              <div class="hud-actions">
+                <button id="pause-btn" class="pause-btn-pill hidden" type="button" aria-label="Pause">
+                  <svg class="pause-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <rect x="6" y="4" width="4.8" height="16" rx="1.8"></rect>
+                    <rect x="13.2" y="4" width="4.8" height="16" rx="1.8"></rect>
+                  </svg>
+                </button>
+              </div>
+              <div class="hud-pill">
+                <span>Score</span>
+                <strong id="score-value">0</strong>
+              </div>
+              <div class="hud-pill">
+                <span>Life</span>
+                <strong id="life-value">3</strong>
+              </div>
+              <div class="hud-pill">
+                <span>Best</span>
+                <strong id="best-value">0</strong>
+              </div>
+              <div class="hud-pill">
+                <span>Fire</span>
+                <strong id="missiles-value">3</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="board-panel cave-flight-board">
+        <div class="section-label">Monthly Leaderboard</div>
+        <h2>Standings</h2>
+        <p>
+          Play any game, earn Prize Points, and climb the monthly leaderboard. Your best submitted score counts.
+          Highest Prize Points wins the monthly prize. Places 2-10 go into the prize draw.
+        </p>
+
+        <div class="table-shell">
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Prize Points</th>
+                <th>Game</th>
+                <th>Submitted</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+              <tr>
+                <td colspan="6" class="empty-state">No scores yet. Start the first run.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <script src="./arcadeLeaderboard.js?v=levels1"></script>
+    <script src="./app.js?v=caveflight-levels1"></script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lane Runner</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    <button id="pause-btn" aria-label="Pause">&#10074;&#10074;</button>
+    <div id="overlay" class="hidden">
+      <h1 id="overlay-title">GAME OVER</h1>
+      <p id="overlay-score"></p>
+      <button id="restart-btn">PLAY AGAIN</button>
+    </div>
+    <div id="mobile-controls">
+      <button class="ctrl-btn" id="btn-left">&#9664;</button>
+      <div id="ctrl-center">
+        <button class="ctrl-btn" id="btn-up">&#9650;</button>
+        <button class="ctrl-btn" id="btn-down">&#9660;</button>
+      </div>
+      <button class="ctrl-btn" id="btn-right">&#9654;</button>
+      <button class="ctrl-btn ctrl-btn-jump" id="btn-jump">JUMP</button>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
