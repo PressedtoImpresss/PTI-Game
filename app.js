@@ -3295,7 +3295,7 @@ function fitMobileCanvas() {
   const vw = window.innerWidth;
   const root = document.documentElement;
 
-  if (vw > 700) {
+  if (vw > 700 || root.classList.contains("cave-flight-doc")) {
     canvas.style.width = "";
     canvas.style.height = "";
     root.style.removeProperty("--mobile-canvas-width");

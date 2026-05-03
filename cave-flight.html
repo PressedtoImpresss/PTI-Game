@@ -1,42 +1,109 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="cave-flight-doc">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#120a2a" />
+    <meta name="theme-color" content="#9fe7ff" />
     <title>Ink Flight Rush | Pressed To Impress Giveaway Arcade</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="./styles.css?v=caveflight-levels1" />
+    <link rel="stylesheet" href="./styles.css?v=caveflight-shell1" />
   </head>
   <body class="cave-flight-page">
     <div class="app-shell cave-flight-shell">
       <section class="hero-panel cave-flight-hero">
-        <section class="hero-copy cave-flight-copy">
+        <section class="hero-copy game_info_card cave-flight-info-card">
           <a class="delivery-back-link" href="./index.html">Back to Arcade</a>
-          <p class="eyebrow">Pressed To Impress Giveaway</p>
-          <h1>Pressed To Impress Ink Flight Rush</h1>
-          <p class="lede">
-            Fly as far as you can, earn Prize Points, and climb the monthly leaderboard.
+          <div class="game_info_eyebrow">Pressed To Impress Giveaway Arcade</div>
+
+          <div class="game_info_title">
+            <h1>
+              Pressed To Impress
+              <span>Giveaway Arcade</span>
+            </h1>
+          </div>
+
+          <p class="game_info_intro">
+            Pick a game, earn Prize Points, and climb the monthly leaderboard.
           </p>
 
-          <div class="reward-strip">
-            <div>
-              <span class="reward-label">1st Place</span>
-              <strong>Monthly Prize</strong>
+          <div class="game_prize_grid">
+            <div class="game_prize_card">
+              <span class="game_prize_icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img">
+                  <path d="M10 5h12v5c0 5.3-2.5 8.7-6 8.7s-6-3.4-6-8.7V5Z" fill="#ffd44f" stroke="#8a5200" stroke-width="2"/>
+                  <path d="M10 8H5.5c.2 4.1 2.1 6.5 5.2 7.2M22 8h4.5c-.2 4.1-2.1 6.5-5.2 7.2" fill="none" stroke="#ff9d21" stroke-width="2.2" stroke-linecap="round"/>
+                  <path d="M16 19v4M10 27h12M12 23h8v4h-8z" stroke="#8a5200" stroke-width="2" stroke-linecap="round" fill="#ffb22b"/>
+                </svg>
+              </span>
+              <div>
+                <small>1st Place</small>
+                <strong>Monthly Prize</strong>
+              </div>
             </div>
-            <div>
-              <span class="reward-label">Places 2-10</span>
-              <strong>Prize Draw</strong>
+
+            <div class="game_prize_card">
+              <span class="game_prize_icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img">
+                  <rect x="5" y="12" width="22" height="15" rx="3" fill="#22c65b" stroke="#053d1c" stroke-width="2"/>
+                  <path d="M16 12v15M5 17h22" stroke="#eaff69" stroke-width="2.4"/>
+                  <path d="M16 12c-5.5-2.4-6.7-6.2-3.8-7.3 2-.8 3.4 1.3 3.8 3.8.4-2.5 1.8-4.6 3.8-3.8 2.9 1.1 1.7 4.9-3.8 7.3Z" fill="#ff9d21" stroke="#7d3600" stroke-width="1.7"/>
+                </svg>
+              </span>
+              <div>
+                <small>Places 2-10</small>
+                <strong>Prize Draw</strong>
+              </div>
             </div>
           </div>
 
-          <ul class="feature-list">
-            <li>Hold the mouse, touch, or spacebar to make the helicopter rise.</li>
-            <li>Release to fall and thread through tight routes.</li>
-            <li>Fly through paint rings for bonus points.</li>
-            <li>Avoid obstacles and use FIRE shots wisely.</li>
-            <li>Survive longer to increase your score and submit your best run.</li>
-          </ul>
+          <div class="home_leaderboard_preview" aria-label="Current top leaderboard players">
+            <div>
+              <small>Current Top 3</small>
+              <strong>Monthly Leaderboard</strong>
+            </div>
+            <ol id="leaderboard-preview-list">
+              <li class="empty">No scores yet. Start the first run.</li>
+            </ol>
+            <p id="leaderboard-reset-countdown">Monthly giveaway ends in: --</p>
+            <a class="leaderboard-preview-link" href="#leaderboard-section">View Full Leaderboard</a>
+          </div>
+
+          <div class="game_instructions">
+            <div class="game_step">
+              <span class="step_icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M7 16c3.5-1.1 6.9-1.1 10.2 0l1.4 3.4c.2.6-.2 1.2-.8 1.2H6.4c-.6 0-1-.6-.8-1.2L7 16Z" fill="#4dd9ff" stroke="#053d40" stroke-width="1.6"/><path d="M12 4v11M8.2 8.2 12 4l3.8 4.2" stroke="#ffb342" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <p>Hold or tap to rise. Release to fall through the route.</p>
+            </div>
+
+            <div class="game_step">
+              <span class="step_icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="#ff8a00" stroke-width="3"/><circle cx="12" cy="12" r="3" fill="none" stroke="#7dff63" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/></svg>
+              </span>
+              <p>Fly through paint rings for bonus points.</p>
+            </div>
+
+            <div class="game_step">
+              <span class="step_icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 13 13 4l7 7-9 9H4v-7Z" fill="#ffb342" stroke="#542400" stroke-width="1.8"/><path d="M8 13h7M8 16h4" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/></svg>
+              </span>
+              <p>Avoid obstacles, missiles, and the top or bottom boundary.</p>
+            </div>
+
+            <div class="game_step">
+              <span class="step_icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M5 12h10M15 12l-3-3M15 12l-3 3" stroke="#7dff63" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 7h2.5c.8 0 1.5.7 1.5 1.5v7c0 .8-.7 1.5-1.5 1.5H17" stroke="#ffb342" stroke-width="2" stroke-linecap="round"/></svg>
+              </span>
+              <p>Use FIRE, gun pickups, and shields wisely to survive.</p>
+            </div>
+
+            <div class="game_step">
+              <span class="step_icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><rect x="4" y="13" width="3.5" height="7" rx="1" fill="#7dff63"/><rect x="10.2" y="8" width="3.5" height="12" rx="1" fill="#ffb342"/><rect x="16.5" y="4" width="3.5" height="16" rx="1" fill="#4dd9ff"/><path d="M3 20h18" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+              </span>
+              <p>Your best submitted score counts on the monthly leaderboard.</p>
+            </div>
+          </div>
         </section>
 
         <div class="game-card cave-flight-game-card">
@@ -192,15 +259,17 @@
         </div>
       </section>
 
-      <section class="board-panel cave-flight-board">
-        <div class="section-label">Monthly Leaderboard</div>
-        <h2>Standings</h2>
-        <p>
-          Play any game, earn Prize Points, and climb the monthly leaderboard. Your best submitted score counts.
-          Highest Prize Points wins the monthly prize. Places 2-10 go into the prize draw.
-        </p>
+      <section class="board-panel cave-flight-board leaderboard_panel" id="leaderboard-section">
+        <div class="leaderboard_header">
+          <div class="leaderboard_eyebrow">Monthly Leaderboard</div>
+          <h2>Standings</h2>
+          <p>
+            Play any game, earn Prize Points, and climb the monthly leaderboard. Your best submitted score counts.
+            Highest Prize Points wins the monthly prize. Places 2-10 go into the prize draw.
+          </p>
+        </div>
 
-        <div class="table-shell">
+        <div class="leaderboard_table table-shell">
           <table>
             <thead>
               <tr>
@@ -223,6 +292,6 @@
     </div>
 
     <script src="./arcadeLeaderboard.js?v=levels1"></script>
-    <script src="./app.js?v=caveflight-levels1"></script>
+    <script src="./app.js?v=caveflight-shell1"></script>
   </body>
 </html>

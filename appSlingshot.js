@@ -371,14 +371,101 @@ const NEW_ENEMY_RULES = {
   enemy3: { defeatImpact: 6.8, projectileImpact: 2.8, crushImpact: 3.5, heavyMass: 9.5, bombDefeatFalloff: 0.72, bombDamageFalloff: 0.42 },
 };
 const BASIC_BOMB_IMPACT = 6.3;
+const LEVEL_GRID_SIZE = 25;
+const LEVEL_VALIDATION_ENABLED = typeof location !== "undefined"
+  && (location.protocol === "file:" || location.hostname === "localhost" || new URLSearchParams(location.search).has("debugLevels"));
+
+const SLING_LEVEL_LAYOUTS = [
+  {
+    id: 1,
+    block: 1,
+    name: "First Shot",
+    difficulty: "Easy",
+    shots: 3,
+    objective: "Hit the main target.",
+    requiredTargetIds: ["target_1"],
+    bonusObjectIds: [],
+    objects: [
+      { id: "main_platform", type: "platform", x: -380, y: 16, width: 360, height: 32, isStatic: true },
+      { id: "target_1", type: "target", x: -380, y: -25, width: 46, height: 46, required: true, points: 500 },
+    ],
+  },
+  {
+    id: 2,
+    block: 1,
+    name: "Low Wall",
+    difficulty: "Easy",
+    shots: 3,
+    objective: "Break through the low wall and hit the target.",
+    requiredTargetIds: ["target_1"],
+    bonusObjectIds: [],
+    objects: [
+      { id: "main_platform", type: "platform", x: -380, y: 16, width: 400, height: 32, isStatic: true },
+      { id: "wall_post_left", type: "verticalPost", x: -455, y: -30, width: 24, height: 60 },
+      { id: "wall_post_right", type: "verticalPost", x: -405, y: -30, width: 24, height: 60 },
+      { id: "wall_beam", type: "horizontalBeam", x: -430, y: -70, width: 86, height: 20 },
+      { id: "target_1", type: "target", x: -320, y: -25, width: 46, height: 46, required: true, points: 500 },
+    ],
+  },
+  {
+    id: 3,
+    block: 1,
+    name: "Two Targets",
+    difficulty: "Easy-Medium",
+    shots: 4,
+    objective: "Clear both targets.",
+    requiredTargetIds: ["target_low", "target_high"],
+    bonusObjectIds: [],
+    objects: [
+      { id: "lower_platform", type: "platform", x: -430, y: 16, width: 260, height: 32, isStatic: true },
+      { id: "target_low", type: "target", x: -430, y: -25, width: 44, height: 44, required: true, points: 500 },
+      { id: "upper_platform", type: "platform", x: -330, y: -78, width: 190, height: 28, isStatic: true },
+      { id: "target_high", type: "target", x: -330, y: -120, width: 44, height: 44, required: true, points: 500 },
+    ],
+  },
+  {
+    id: 4,
+    block: 1,
+    name: "Bonus Object",
+    difficulty: "Medium",
+    shots: 4,
+    objective: "Clear the target. Hit the star for extra score.",
+    requiredTargetIds: ["target_1"],
+    bonusObjectIds: ["bonus_star"],
+    objects: [
+      { id: "main_platform", type: "platform", x: -500, y: 16, width: 340, height: 32, isStatic: true },
+      { id: "target_1", type: "target", x: -465, y: -25, width: 46, height: 46, required: true, points: 500 },
+      { id: "bonus_shelf", type: "platform", x: -400, y: -86, width: 130, height: 24, isStatic: true },
+      { id: "bonus_star", type: "bonusObject", x: -400, y: -120, width: 42, height: 42, bonus: true, points: 250 },
+    ],
+  },
+  {
+    id: 5,
+    block: 1,
+    name: "First Mini Structure",
+    difficulty: "Medium",
+    shots: 5,
+    objective: "Knock down the small frame and clear the target.",
+    requiredTargetIds: ["target_1"],
+    bonusObjectIds: ["bonus_star"],
+    objects: [
+      { id: "main_platform", type: "platform", x: -420, y: 16, width: 400, height: 32, isStatic: true },
+      { id: "tower_post_left", type: "verticalPost", x: -470, y: -42, width: 24, height: 84 },
+      { id: "tower_post_right", type: "verticalPost", x: -370, y: -42, width: 24, height: 84 },
+      { id: "tower_roof", type: "horizontalBeam", x: -420, y: -94, width: 132, height: 20 },
+      { id: "target_1", type: "target", x: -420, y: -24, width: 44, height: 44, required: true, points: 500 },
+      { id: "bonus_star", type: "bonusObject", x: -525, y: -25, width: 42, height: 42, bonus: true, points: 250 },
+    ],
+  },
+];
 
 const assets = {};
 const levels = [
-  { name: "Print Yard", projectile: "ink", strength: 1, tower: "starter", shots: 3, platformPattern: "starter" },
-  { name: "Rush Order", projectile: "paint", strength: 1.08, tower: "wide", shots: 3, platformPattern: "wideRight" },
-  { name: "Shop Floor", projectile: "parcel", strength: 1.16, tower: "glass", shots: 4, platformPattern: "shortLeft" },
-  { name: "Deadline Stack", projectile: "roll", strength: 1.22, tower: "heavy", shots: 4, platformPattern: "narrowRight" },
-  { name: "Packing Line", projectile: "ink", strength: 1.24, tower: "split", shots: 4, platformPattern: "split" },
+  { ...SLING_LEVEL_LAYOUTS[0], projectile: "ink", strength: 1, tower: "structured", platformPattern: "starter" },
+  { ...SLING_LEVEL_LAYOUTS[1], projectile: "paint", strength: 1.08, tower: "structured", platformPattern: "wideRight" },
+  { ...SLING_LEVEL_LAYOUTS[2], projectile: "parcel", strength: 1.16, tower: "structured", platformPattern: "shortLeft" },
+  { ...SLING_LEVEL_LAYOUTS[3], projectile: "roll", strength: 1.22, tower: "structured", platformPattern: "narrowRight" },
+  { ...SLING_LEVEL_LAYOUTS[4], projectile: "ink", strength: 1.24, tower: "structured", platformPattern: "split" },
   { name: "Courier Crunch", projectile: "paint", strength: 1.26, tower: "bridge", shots: 4, platformPattern: "splitWide" },
   { name: "Press Tower", projectile: "parcel", strength: 1.28, tower: "tower", shots: 5, platformPattern: "pressTower" },
   { name: "Ink Fortress", projectile: "roll", strength: 1.30, tower: "fort", shots: 5, platformPattern: "fortSplit" },
@@ -1296,6 +1383,145 @@ function platformSpecsForLevel(level) {
   return layouts[pattern] || layouts.starter;
 }
 
+function snapLevelX(value) {
+  return Math.round((Number(value) || 0) / LEVEL_GRID_SIZE) * LEVEL_GRID_SIZE;
+}
+
+function levelObjectMetrics(obj, baseX, baseY, s) {
+  const xOffset = obj.snap === false ? Number(obj.x || 0) : snapLevelX(obj.x);
+  return {
+    x: baseX + xOffset * s,
+    y: baseY + (Number(obj.y) || 0) * s,
+    w: (Number(obj.width) || 44) * s,
+    h: (Number(obj.height) || 44) * s,
+  };
+}
+
+function addStaticPlatformFromLayout(obj, baseX, baseY, s, palette) {
+  const { x, y, w, h } = levelObjectMetrics(obj, baseX, baseY, s);
+  const shelf = Bodies.rectangle(x, y, w, h, {
+    isStatic: true,
+    label: "static",
+    friction: 0.96,
+  });
+  shelf.plugin = { id: obj.id, kind: "static", asset: "platform", layoutType: obj.type };
+  platforms.push({ id: obj.id, x, y, w, h, palette });
+  World.add(world, shelf);
+  return shelf;
+}
+
+function addStructuredLevelObject(obj, baseX, baseY, s, palette) {
+  const { x, y, w, h } = levelObjectMetrics(obj, baseX, baseY, s);
+  let body = null;
+
+  if (obj.type === "platform" || obj.type === "staticGround") {
+    return addStaticPlatformFromLayout(obj, baseX, baseY, s, palette);
+  }
+
+  if (obj.type === "target") {
+    body = addTarget("enemy", x, y, w, h, obj.points || 500);
+    if (body) {
+      body.plugin.required = true;
+      body.plugin.health = obj.health ?? 0.95;
+    }
+  } else if (obj.type === "bonusObject") {
+    body = addTarget("star", x, y, w, h, obj.points || 250);
+    if (body) {
+      body.plugin.required = false;
+      body.plugin.bonus = true;
+      body.plugin.health = obj.health ?? 0.6;
+    }
+  } else if (obj.type === "crate") {
+    body = addTarget("box", x, y, w, h, obj.points || 220);
+    if (body) {
+      body.plugin.required = false;
+      body.plugin.bonus = Boolean(obj.bonus);
+      body.plugin.health = obj.health ?? 1.1;
+    }
+  } else {
+    const blockKind = {
+      woodBlockSmall: "woodH",
+      woodBlockMedium: "woodH",
+      woodBlockLarge: "woodH",
+      horizontalBeam: "woodH",
+      verticalPost: "woodV",
+      hazardObject: "metal",
+    }[obj.type] || "woodH";
+    body = addBlock(blockKind, x, y, w, h, obj.rotation || 0);
+    if (body && Number.isFinite(obj.health)) body.plugin.health = obj.health;
+  }
+
+  if (body?.plugin) {
+    body.plugin.id = obj.id;
+    body.plugin.layoutType = obj.type;
+    body.plugin.required = Boolean(obj.required || obj.type === "target");
+    body.plugin.bonus = Boolean(obj.bonus || obj.type === "bonusObject");
+  }
+  return body;
+}
+
+function validateStructuredLevel(level, baseX, baseY, s) {
+  if (!LEVEL_VALIDATION_ENABLED || !level?.objects) return;
+  const warnings = [];
+  const ids = new Set();
+  const requiredIds = new Set(level.requiredTargetIds || []);
+  const objectIds = new Set();
+
+  if (!level.id) warnings.push("missing level id");
+  if (!level.shots || level.shots <= 0) warnings.push("shots must be greater than zero");
+  if (!requiredIds.size) warnings.push("missing requiredTargetIds");
+
+  const bounds = level.objects.map((obj) => {
+    if (!obj.id) warnings.push(`${obj.type || "object"} is missing id`);
+    if (obj.id && ids.has(obj.id)) warnings.push(`duplicate object id: ${obj.id}`);
+    if (obj.id) {
+      ids.add(obj.id);
+      objectIds.add(obj.id);
+    }
+    if (obj.type === "target" && !obj.required) warnings.push(`${obj.id} should be explicitly required`);
+    const metrics = levelObjectMetrics(obj, baseX, baseY, s);
+    const box = {
+      id: obj.id,
+      type: obj.type,
+      left: metrics.x - metrics.w / 2,
+      right: metrics.x + metrics.w / 2,
+      top: metrics.y - metrics.h / 2,
+      bottom: metrics.y + metrics.h / 2,
+      area: metrics.w * metrics.h,
+    };
+    if (obj.required && (box.left < 40 || box.right > worldW - 30 || box.top < 78 || box.bottom > groundY + 20)) {
+      warnings.push(`${obj.id} is outside the safe required-target play area`);
+    }
+    return box;
+  });
+
+  for (const id of requiredIds) {
+    if (!objectIds.has(id)) warnings.push(`required target id missing from objects: ${id}`);
+  }
+
+  for (let i = 0; i < bounds.length; i += 1) {
+    for (let j = i + 1; j < bounds.length; j += 1) {
+      const a = bounds[i];
+      const b = bounds[j];
+      const overlapW = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+      const overlapH = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+      const overlapArea = overlapW * overlapH;
+      const overlapRatio = overlapArea / Math.max(1, Math.min(a.area, b.area));
+      if (overlapRatio > 0.18) warnings.push(`${a.id} overlaps ${b.id}`);
+    }
+  }
+
+  if (warnings.length) console.warn(`Print Yard Sling level ${level.id} validation`, warnings);
+}
+
+function buildStructuredLevel(level, baseX, baseY, s) {
+  const palette = platformPalette(state.levelIndex);
+  validateStructuredLevel(level, baseX, baseY, s);
+  for (const obj of level.objects || []) {
+    addStructuredLevelObject(obj, baseX, baseY, s, palette);
+  }
+}
+
 function buildTower() {
   const level = levels[state.levelIndex];
   const baseX = worldW - cssW * (cssW < 560 ? 0.37 : 0.41);
@@ -1307,6 +1533,10 @@ function buildTower() {
   const postW = 24 * s;
   const postH = 86 * s;
   const gap = 48 * s;
+  if (level.objects?.length) {
+    buildStructuredLevel(level, baseX, baseY, s);
+    return;
+  }
   const platformSpecs = level.platforms || platformSpecsForLevel(level);
   const palette = platformPalette(state.levelIndex);
   for (const p of platformSpecs) {

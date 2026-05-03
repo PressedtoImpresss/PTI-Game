@@ -631,6 +631,345 @@ body.cave-flight-page .game-frame.cave-flight-frame .cave-brand-logo {
   }
 }
 
+/* Ink Flight Rush embedded arcade shell fix.
+   Keep the website shell consistent with the main arcade page; only the game frame stays Flight-themed. */
+.cave-flight-doc,
+.cave-flight-doc body {
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  touch-action: manipulation;
+}
+
+body.cave-flight-page {
+  color: var(--text) !important;
+  background:
+    radial-gradient(ellipse at 18% 15%, rgba(255, 255, 255, 0.78) 0 12%, transparent 12.5%),
+    radial-gradient(ellipse at 68% 13%, rgba(255, 255, 255, 0.64) 0 10%, transparent 10.5%),
+    radial-gradient(circle at 18% 82%, rgba(88, 173, 45, 0.30), transparent 32%),
+    radial-gradient(circle at 84% 22%, rgba(21, 153, 199, 0.26), transparent 30%),
+    linear-gradient(180deg, #b9ecff 0%, #eaffdf 62%, #fff6cf 100%) !important;
+}
+
+body.cave-flight-page::before {
+  opacity: 0.45 !important;
+  background-image:
+    linear-gradient(22deg, transparent 0 44%, rgba(255,255,255,0.20) 44.3% 47.5%, transparent 47.8%),
+    linear-gradient(-24deg, transparent 0 42%, rgba(255,255,255,0.16) 42.3% 45.2%, transparent 45.5%) !important;
+  background-size: 100% 100% !important;
+  mask-image: linear-gradient(180deg, black 0, transparent 76%) !important;
+}
+
+body.cave-flight-page::after {
+  opacity: 0.20 !important;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(255,255,255,0.80), transparent 28%),
+    radial-gradient(circle at center, transparent 42%, rgba(24, 94, 120, 0.30) 100%) !important;
+}
+
+body.cave-flight-page .app-shell.cave-flight-shell {
+  width: min(1480px, calc(100% - 36px)) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 auto !important;
+  padding: 28px 0 48px !important;
+  overflow: visible !important;
+}
+
+body.cave-flight-page .hero-panel.cave-flight-hero {
+  display: grid !important;
+  grid-template-columns: minmax(320px, 0.58fr) minmax(0, 1.42fr) !important;
+  align-items: center !important;
+  gap: 22px !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 28px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.72), rgba(240,255,230,0.80)),
+    radial-gradient(ellipse at 15% 18%, rgba(255,255,255,0.68) 0 14%, transparent 14.5%),
+    radial-gradient(ellipse at 88% 12%, rgba(255,255,255,0.58) 0 12%, transparent 12.5%) !important;
+  box-shadow: var(--shadow) !important;
+  backdrop-filter: blur(18px);
+  overflow: visible !important;
+}
+
+body.cave-flight-page .hero-copy.game_info_card {
+  display: flex !important;
+}
+
+body.cave-flight-page .cave-flight-info-card .delivery-back-link {
+  margin: 0 0 12px;
+  align-self: flex-start;
+}
+
+body.cave-flight-page .game_info_title h1 {
+  max-width: none !important;
+  color: #ffffff !important;
+  font-family: var(--font-display);
+  font-size: clamp(2.15rem, 3vw, 3.35rem) !important;
+  line-height: 0.88 !important;
+  letter-spacing: 0 !important;
+  text-transform: uppercase;
+  -webkit-text-stroke: 0;
+  text-shadow:
+    0 4px 0 #061c20,
+    0 7px 0 #1c7f21,
+    0 12px 24px rgba(0, 0, 0, 0.68) !important;
+}
+
+body.cave-flight-page .game_info_title h1 span {
+  color: #ff8a00 !important;
+  text-shadow:
+    0 4px 0 #3d1600,
+    0 7px 0 #0d3412,
+    0 12px 24px rgba(0, 0, 0, 0.68) !important;
+}
+
+body.cave-flight-page .cave-flight-game-card {
+  width: 100% !important;
+  height: auto !important;
+  flex: 0 1 auto !important;
+  align-items: stretch !important;
+  overflow: visible !important;
+}
+
+body.cave-flight-page .game-frame.cave-flight-frame {
+  width: min(100%, 960px) !important;
+  height: min(67vh, 540px) !important;
+  max-height: 540px !important;
+  aspect-ratio: 16 / 9 !important;
+  flex: 0 1 auto !important;
+  margin-left: auto !important;
+  padding: 8px !important;
+  border-radius: 14px !important;
+  background:
+    linear-gradient(135deg, rgba(125,255,99,0.18), transparent 28% 74%, rgba(255,138,0,0.18)),
+    linear-gradient(180deg, rgba(3, 44, 51, 1), rgba(1, 13, 18, 1)) !important;
+  border: 2px solid rgba(77, 217, 255, 0.36) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.16),
+    inset 0 0 0 1px rgba(125,255,99,0.16),
+    0 18px 42px rgba(19, 98, 118, 0.20),
+    0 0 28px rgba(77,217,255,0.18) !important;
+}
+
+body.cave-flight-page .game-frame.cave-flight-frame canvas {
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 16 / 9 !important;
+  border-radius: 8px !important;
+}
+
+body.cave-flight-page .board-panel.cave-flight-board {
+  display: block !important;
+  margin-top: 24px !important;
+}
+
+body.cave-flight-page .board-panel.cave-flight-board.leaderboard_panel {
+  background:
+    linear-gradient(180deg, rgba(4, 28, 31, 0.96), rgba(2, 14, 17, 0.98)) !important;
+  border: 2px solid rgba(115, 255, 78, 0.45) !important;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 0 28px rgba(102, 255, 72, 0.22) !important;
+}
+
+@media (max-width: 960px) {
+  body.cave-flight-page .hero-panel.cave-flight-hero {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .cave-flight-doc,
+  .cave-flight-doc body {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    touch-action: manipulation !important;
+  }
+
+  body.cave-flight-page .app-shell.cave-flight-shell {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    padding: 12px !important;
+    overflow: visible !important;
+  }
+
+  body.cave-flight-page .hero-panel.cave-flight-hero {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 12px !important;
+    border-radius: 22px !important;
+    overflow: visible !important;
+  }
+
+  body.cave-flight-page .hero-panel.cave-flight-hero > *,
+  body.cave-flight-page .hero-copy.game_info_card,
+  body.cave-flight-page .cave-flight-game-card,
+  body.cave-flight-page .board-panel.cave-flight-board {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  body.cave-flight-page .hero-copy.game_info_card {
+    display: flex !important;
+  }
+
+  body.cave-flight-page .board-panel.cave-flight-board {
+    display: block !important;
+  }
+
+  body.cave-flight-page .game_info_title h1 {
+    max-width: 10ch !important;
+    font-size: clamp(2.15rem, 8vw, 3.1rem) !important;
+  }
+
+  body.cave-flight-page .cave-flight-game-card {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    flex: 0 0 auto !important;
+    overflow: visible !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    aspect-ratio: auto !important;
+    flex: 0 0 auto !important;
+    padding: 6px !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame:has(.cave-level-select-overlay:not(.hidden)),
+  body.cave-flight-page .game-frame.cave-flight-frame:has(.start-overlay:not(.hidden)) {
+    min-height: min(60vh, 340px) !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame canvas {
+    display: block !important;
+    width: calc(100vw - 54px) !important;
+    max-width: calc(100vw - 54px) !important;
+    height: calc((100vw - 54px) * 0.5625) !important;
+    aspect-ratio: 16 / 9 !important;
+    border-radius: 8px !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-level-select-overlay {
+    padding: 8px !important;
+    overflow: hidden auto !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-level-select-panel {
+    width: calc(100% - 12px) !important;
+    max-height: calc(100% - 12px) !important;
+    padding: 10px !important;
+    border-radius: 16px !important;
+    overflow-y: auto !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-level-back {
+    min-height: 30px !important;
+    margin-bottom: 4px !important;
+    padding: 0 12px !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-level-select-panel .overlay-kicker {
+    font-size: 0.62rem !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-level-select-panel h2 {
+    margin: 2px 0 4px !important;
+    font-size: 1.55rem !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-level-select-copy {
+    margin-bottom: 8px !important;
+    font-size: 0.78rem !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-level-grid {
+    gap: 5px !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 2px !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-level-button {
+    min-height: 42px !important;
+    border-radius: 10px !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-level-number {
+    font-size: 1.05rem !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-level-state {
+    min-height: 12px !important;
+    font-size: 0.42rem !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .hud-strip {
+    position: absolute !important;
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 8px !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 46px !important;
+    padding: 5px !important;
+    border-radius: 12px !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .hud-pill {
+    padding: 4px 3px !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .hud-pill span {
+    font-size: 0.45rem !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .hud-pill strong {
+    font-size: 0.72rem !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-fire-btn {
+    top: auto !important;
+    right: 14px !important;
+    bottom: 70px !important;
+    width: 72px !important;
+    height: 40px !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-brand-logo {
+    top: 18px !important;
+    right: 18px !important;
+    width: 26px !important;
+    height: 26px !important;
+  }
+}
+
 /* Final monthly leaderboard mobile layout override. */
 @media (max-width: 760px) {
   .leaderboard_table,
