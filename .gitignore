@@ -30,6 +30,7 @@ choose-game-*.png
 debug-sling-*.png
 game-*.png
 home-*.png
+!Assets/slingshot/home-page1.png
 ink-flight-*.png
 level-*-after-fix.png
 level-*-before-fix.png
