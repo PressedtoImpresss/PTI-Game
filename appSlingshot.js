@@ -1086,12 +1086,14 @@ function setupCanvasSize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   cssW = Math.max(320, rect.width || 960);
   cssH = Math.max(320, rect.height || 540);
-  worldW = Math.max(cssW, cssW * (mobile ? 1.68 : 1.55));
+  const mobileWorldScale = mobile ? 1.82 : 1.55;
+  worldW = Math.max(cssW, cssW * mobileWorldScale);
   canvas.width = Math.round(cssW * dpr);
   canvas.height = Math.round(cssH * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   groundY = cssH * 0.86;
-  anchor = { x: cssW * 0.28, y: groundY - clamp(cssH * 0.095, 42, 64) };
+  const anchorXRatio = mobile ? 0.24 : 0.28;
+  anchor = { x: cssW * anchorXRatio, y: groundY - clamp(cssH * 0.095, 42, 64) };
   cameraX = clamp(cameraX, 0, Math.max(0, worldW - cssW));
   cameraTargetX = clamp(cameraTargetX, 0, Math.max(0, worldW - cssW));
 }
@@ -3373,7 +3375,8 @@ function onPointerMove(event) {
   event.preventDefault();
   pointer = screenPoint(event);
   const pull = Vector.sub(pointer, anchor);
-  const maxPull = clamp(cssW * 0.095, 58, 92);
+  const isMobileCanvas = cssW <= 640;
+  const maxPull = isMobileCanvas ? clamp(cssH * 0.09, 66, 78) : clamp(cssW * 0.095, 58, 92);
   const length = Vector.magnitude(pull);
   const limited = length > maxPull ? Vector.mult(Vector.normalise(pull), maxPull) : pull;
   const x = anchor.x + limited.x;
