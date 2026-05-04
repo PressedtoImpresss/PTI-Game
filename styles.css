@@ -1902,7 +1902,7 @@ body:not(.cave-flight-page) .arcade-game-copy em {
 }
 
 .leaderboard-play-now {
-  min-height: 38px;
+  min-height: 44px;
   padding: 0 22px;
   border-radius: 999px;
   border: 2px solid rgba(255, 220, 115, 0.9);
@@ -4881,6 +4881,7 @@ canvas {
   left: 18%;
   top: 6.5%;
   width: 11%;
+  min-width: 48px;
   height: 12%;
   background: transparent;
   border: none;
@@ -7327,7 +7328,11 @@ tbody tr.raffle {
   body:not(.cave-flight-page) .projectile-indicator {
     top: max(52px, env(safe-area-inset-top)) !important;
     left: 8px !important;
-    right: 8px !important;
+    right: auto !important;
+    width: min(270px, calc(100vw - 126px)) !important;
+    max-width: 270px !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    padding: 7px !important;
   }
 
   body:not(.cave-flight-page) .targets-left {
@@ -7840,6 +7845,67 @@ tbody tr.raffle {
 
   body.cave-flight-page .cave-pause-button,
   .cave-flight-page .cave-pause-button {
+    min-height: 48px !important;
+  }
+}
+
+/* Phone landscape still needs the mobile game shell; width-based media queries miss it. */
+@media (pointer: coarse) and (max-height: 520px) and (orientation: landscape) {
+  body:not(.cave-flight-page) .app-shell,
+  body:not(.cave-flight-page) .hero-panel,
+  body:not(.cave-flight-page) .game-card,
+  body:not(.cave-flight-page) .game-frame {
+    width: 100% !important;
+    height: 100svh !important;
+    height: 100dvh !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body:not(.cave-flight-page) .hero-copy,
+  body:not(.cave-flight-page) .board-panel,
+  body:not(.cave-flight-page) .ops-panel {
+    display: none !important;
+  }
+
+  body:not(.cave-flight-page) .game-frame canvas {
+    width: 100vw !important;
+    height: calc(100svh - 52px) !important;
+    height: calc(100dvh - 52px) !important;
+    border-radius: 0 !important;
+  }
+
+  body:not(.cave-flight-page) .hud-strip {
+    height: 52px !important;
+    padding: 5px 8px calc(5px + env(safe-area-inset-bottom)) !important;
+    gap: 6px !important;
+  }
+
+  body:not(.cave-flight-page) .hud-pill {
+    min-width: 74px !important;
+    min-height: 42px !important;
+    padding: 4px 8px !important;
+  }
+
+  body:not(.cave-flight-page) .projectile-indicator {
+    top: max(8px, env(safe-area-inset-top)) !important;
+    left: max(8px, env(safe-area-inset-left)) !important;
+    right: auto !important;
+    width: min(250px, 32vw) !important;
+  }
+
+  body:not(.cave-flight-page) .targets-left {
+    top: max(8px, env(safe-area-inset-top)) !important;
+    right: max(10px, env(safe-area-inset-right)) !important;
+  }
+
+  body:not(.cave-flight-page) #pause-btn.pause-btn-pill {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
     min-height: 48px !important;
   }
 }

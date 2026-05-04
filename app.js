@@ -9,15 +9,15 @@ const HEART_SCORE_GAP = 1050;
 const HEARTS_PER_LEVEL = 2;
 const BACKGROUND_SCROLL_SPEED = 0.34;
 const FOREGROUND_SCROLL_SPEED = 0.72;
-const POWERUP_FIRST_SPAWN_RANGE = [10, 15]; // seconds before first gun/shield chance in a level
-const POWERUP_SPAWN_RANGE = [20, 35];       // seconds between later gun/shield chances
-const DEFAULT_GUN_DURATION = 9;             // seconds of free auto-fire
-const DEFAULT_AUTO_FIRE_INTERVAL = 0.5;     // seconds between free gun shots
+const POWERUP_FIRST_SPAWN_RANGE = [6, 10];  // seconds before first gun/shield chance in a level
+const POWERUP_SPAWN_RANGE = [10, 18];       // seconds between later gun/shield chances
+const DEFAULT_GUN_DURATION = 10;            // seconds of free auto-fire
+const DEFAULT_AUTO_FIRE_INTERVAL = 0.5 / 7; // seven times faster than the old gun cadence
 const DEFAULT_SHIELD_HITS = 1;              // one-hit shield by default
-const MIN_GUN_PICKUPS_PER_LEVEL = 2;        // guaranteed gun drops per Ink Flight level
+const MIN_GUN_PICKUPS_PER_LEVEL = 3;        // guaranteed gun drops per Ink Flight level
 const MIN_SHIELD_PICKUPS_PER_LEVEL = 2;     // guaranteed shield drops per Ink Flight level
 const MAX_SHIELD_HITS = 2;                  // shield charges can stack, but only up to two hits
-const GUARANTEED_GUN_PROGRESS = [0.12, 0.42];
+const GUARANTEED_GUN_PROGRESS = [0.1, 0.32, 0.58];
 const GUARANTEED_SHIELD_PROGRESS = [0.24, 0.62];
 
 // Paste your deployed Google Apps Script URL here after setting up Claude commentary
@@ -370,6 +370,7 @@ const gameState = {
   levelTipTimer:     0,
   bonusScore:        0,
   totalScore:        0,
+  levelStartTotalScore: 0,
   smokePuffTimer:       0,
   missiles:             3,  // stacks across levels; +1 per level start
   caveGunTimer:         0,
@@ -973,7 +974,7 @@ function checkFloaterCollisions() {
       const config = getPickupConfig();
       f.collected = true;
       gameState.caveBurst = Math.min(12, Math.max(gameState.caveBurst, 0) + config.gunDuration);
-      gameState.caveBurstFireTimer = Math.min(gameState.caveBurstFireTimer, 0.1);
+      gameState.caveBurstFireTimer = Math.min(gameState.caveBurstFireTimer, 0.02);
       spawnParticles(f.cx, f.cy, "#ffb342", 22);
       spawnParticles(f.cx, f.cy, "#ffffff", 10);
       scorePopups.push({ x: f.cx, y: f.cy - 18, text: `AUTO FIRE ${Math.ceil(config.gunDuration)}s`, life: 1.25 });
@@ -1048,11 +1049,12 @@ function updateBanner(delta) {
 
 // â”€â”€ GAME FLOW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-function resetGame(fullReset = true) {
+function resetGame(fullReset = true, options = {}) {
   if (fullReset) {
     gameState.levelIndex = 0;
   }
   const levelDef = getLevelDef(gameState.levelIndex + 1);
+  const carriedScore = Math.max(0, Math.floor(Number(options.carryScore ?? 0) || 0));
 
   helicopter.y        = IS_MOBILE_FLIGHT_PORTRAIT ? WORLD_HEIGHT * 0.46 : 308;
   helicopter.velocityY = 0;
@@ -1071,6 +1073,7 @@ function resetGame(fullReset = true) {
   gameState.status         = "idle";
   gameState.score          = 0;
   gameState.displayedScore = 0;
+  gameState.finalTotal     = carriedScore;
   gameState.distance       = 0;
   gameState.speed          = (levelDef.baseSpeed || 115) * MOBILE_FLIGHT_SPEED_SCALE;
   gameState.justSubmitted  = false;
@@ -1078,7 +1081,8 @@ function resetGame(fullReset = true) {
   cavePauseOverlay?.classList.add("hidden");
   gameState.safeTime    = 1.1;
   gameState.hitRecovery = 0;
-  gameState.totalScore = 0;
+  gameState.totalScore = carriedScore;
+  gameState.levelStartTotalScore = carriedScore;
   gameState.lives      = Math.min(MAX_LIVES, levelDef.lives || 3);
   gameState.missiles   = levelDef.fireCount || 3;
   gameState.lastSpawnType = null;
@@ -1106,7 +1110,7 @@ function resetGame(fullReset = true) {
   gameState.pickupTimer       = 0;
   gameState.lastAnySpecialScore = -9999;
 
-  scoreValue.textContent = "0";
+  scoreValue.textContent = String(carriedScore);
   lifeValue.textContent  = String(gameState.lives);
   missilesValue.textContent = String(gameState.missiles);
 
@@ -1153,7 +1157,7 @@ function prepareLevelIntro(levelNumber) {
   if (!isLevelUnlocked(safeLevel)) return;
   gameState.levelIndex = safeLevel - 1;
   const def = getLevelDef(safeLevel);
-  resetGame(false);
+  resetGame(false, { carryScore: 0 });
   if (startLevelKicker) startLevelKicker.textContent = `Level ${def.id}: ${def.subtitle || "Ink Flight Rush"}`;
   if (startLevelTitle) startLevelTitle.textContent = def.name.replace(/^Level \d+[: ]\s*/, "");
   startButton.textContent = `Start Level ${def.id}`;
@@ -1165,7 +1169,7 @@ function prepareLevelIntro(levelNumber) {
   render();
 }
 
-function startLevel(levelNumber = gameState.levelIndex + 1) {
+function startLevel(levelNumber = gameState.levelIndex + 1, options = {}) {
   const safeLevel = Math.max(1, Math.min(INK_FLIGHT_LEVELS.length, Math.floor(Number(levelNumber) || 1)));
   if (!isLevelUnlocked(safeLevel)) {
     showCaveLevelSelect();
@@ -1173,7 +1177,8 @@ function startLevel(levelNumber = gameState.levelIndex + 1) {
   }
   window.PTIArcade?.trackEvent("game_started", { gameId: "inkFlightRush", level: safeLevel });
   gameState.levelIndex = safeLevel - 1;
-  resetGame(false);
+  const carryScore = Math.max(0, Math.floor(Number(options.carryScore ?? 0) || 0));
+  resetGame(false, { carryScore });
   gameState.status = "running";
   startOverlay.classList.add("hidden");
   gameOverOverlay.classList.add("hidden");
@@ -1186,7 +1191,7 @@ function startLevel(levelNumber = gameState.levelIndex + 1) {
 }
 
 function restartCurrentLevel() {
-  startLevel(gameState.levelIndex + 1);
+  startLevel(gameState.levelIndex + 1, { carryScore: gameState.levelStartTotalScore || 0 });
 }
 
 function registerHit(options = {}) {
@@ -1321,7 +1326,8 @@ function startNextLevel() {
     restartCurrentLevel();
     return;
   }
-  startLevel(gameState.levelIndex + 2);
+  const carryScore = Math.max(0, Math.floor(gameState.finalTotal || gameState.totalScore + gameState.score || 0));
+  startLevel(gameState.levelIndex + 2, { carryScore });
 }
 
 async function endGame() {

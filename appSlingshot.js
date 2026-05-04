@@ -1153,13 +1153,17 @@ function loadAssets() {
 
 function setupCanvasSize() {
   const root = document.documentElement;
-  const mobile = window.innerWidth <= 640;
+  const coarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches || navigator.maxTouchPoints > 0;
+  const mobile = window.innerWidth <= 640 || (coarsePointer && Math.min(window.innerWidth, window.innerHeight) <= 640);
   if (mobile) {
     const hudH = document.querySelector(".hud-strip")?.offsetHeight || 58;
+    const landscapePhone = window.innerWidth > window.innerHeight;
+    const minCanvasHeight = landscapePhone ? 300 : 420;
+    const targetHeight = Math.max(minCanvasHeight, window.innerHeight - hudH);
     canvas.style.width = window.innerWidth + "px";
-    canvas.style.height = Math.max(420, window.innerHeight - hudH) + "px";
+    canvas.style.height = targetHeight + "px";
     root.style.setProperty("--mobile-canvas-width", window.innerWidth + "px");
-    root.style.setProperty("--mobile-canvas-height", Math.max(420, window.innerHeight - hudH) + "px");
+    root.style.setProperty("--mobile-canvas-height", targetHeight + "px");
   } else {
     canvas.style.width = "";
     canvas.style.height = "";
@@ -2903,7 +2907,7 @@ function restartFromFirstLevel() {
 }
 
 function finishLevel() {
-  if (state.wonLevel) return;
+  if (state.wonLevel || !state.hasLaunched) return;
   playSound("level");
   state.levelCompleteQueued = false;
   state.wonLevel = true;
@@ -3488,6 +3492,7 @@ function activateShotAbility() {
 
 function queueLevelComplete() {
   if (state.status !== "running" || state.wonLevel || state.levelCompleteQueued) return;
+  if (!state.hasLaunched) return;
   if (remainingTargets() !== 0) return;
   state.levelCompleteQueued = true;
   setTimeout(() => {
@@ -4679,7 +4684,7 @@ function drawGameplayHint() {
   const isCompact = cssW < 680;
   const x = isCompact ? (cssW - w) / 2 : cssW - w - 22;
   const compactBottomLimit = Math.max(86, cssH - h - 92);
-  const y = isCompact ? clamp(cssH * 0.34, 86, compactBottomLimit) : clamp(cssH * 0.13, 72, 98);
+  const y = isCompact ? clamp(cssH * 0.18, 132, compactBottomLimit) : clamp(cssH * 0.13, 72, 98);
   ctx.globalAlpha = alpha;
   const grad = ctx.createLinearGradient(0, y, 0, y + h);
   grad.addColorStop(0, "rgba(4, 34, 38, 0.94)");
