@@ -24,11 +24,25 @@ const BURST_MAX_USES_PER_SHOT = 1;
 const PLATFORM_VERTICAL_OFFSET = 24;
 const SLINGSHOT_ROTATION = 0.08;
 const SLINGSHOT_LOCAL_POUCH = { x: 0.50, y: 0.42 };
-const SLINGSHOT_LEFT_BAND = { x: 0.18, y: 0.15 };
-const SLINGSHOT_RIGHT_BAND = { x: 0.80, y: 0.15 };
+const SLINGSHOT_LEFT_BAND = { x: 0.38, y: 0.19 };
+const SLINGSHOT_RIGHT_BAND = { x: 0.69, y: 0.17 };
+const SLING_STRING_TARGET_HEIGHT = { min: 8.5, ratio: 0.012, max: 14.5 };
+const SLING_STRING_SOURCE_CAPS = { start: 170, end: 36 };
+const SLING_STRING_OVERLAP = { start: 0.62, end: 0.78 };
 const FINAL_SHOT_POWER = 1.24;
 const FINAL_PROJECTILE_TYPE = "finalLogo";
-const PROJECTILE_TYPE_SEQUENCE = ["standard", "heavy", "splatter", "trigger", "utility"];
+const PROJECTILE_TYPE_SEQUENCE = ["standard", "tshirt", "heavy", "splatter", "trigger"];
+const PLATFORM_ASSET_KEYS = Object.freeze(["table1", "table2", "table3", "table4", "table5", "table6", "table7"]);
+const PLATFORM_ROTATION_KEYS = Object.freeze(["table2", "table3", "table6", "table7", "table1"]);
+const PLATFORM_ASSET_ALIASES = Object.freeze({
+  "table-1": "table1",
+  "table-2": "table2",
+  "table-3": "table3",
+  "table-4": "table4",
+  "table-5": "table5",
+  "table-6": "table6",
+  "table-7": "table7",
+});
 const LEGACY_PROJECTILE_TYPE_MAP = {
   paint: "standard",
   parcel: "heavy",
@@ -68,6 +82,22 @@ const PROJECTILE_TYPES = {
     damageScale: 1.45,
     effect: "heavy",
     tint: "#ffb342",
+  },
+  tshirt: {
+    label: "T-Shirt",
+    description: "Light merch shot",
+    asset: "tshirt",
+    radius: 22,
+    width: 52,
+    height: 58,
+    density: 0.003,
+    restitution: 0.36,
+    frictionAir: 0.0048,
+    power: 1.08,
+    impactBoost: 0.9,
+    damageScale: 0.82,
+    effect: "standard",
+    tint: "#ff8f25",
   },
   splatter: {
     label: "Splatter",
@@ -149,9 +179,14 @@ const PROJECTILE_ASSETS = Object.freeze(
 const PROJECTILE_ONLY_ASSETS = new Set(PROJECTILE_ASSETS);
 const WORLD_OBJECT_ASSETS = Object.freeze([
   "woodH", "woodV", "glass", "metal", "box", "badPrint", "sign", "printer",
-  "enemy", "enemy2", "enemy3", "glue", "heatPress", "bombObject", "tnt", "star",
+  "enemy", "enemy2", "enemy3", "glue", "heatPress", "inkCan", "paintBallObject",
+  "bombObject", "tnt", "star",
 ]);
-const TARGET_ASSETS = Object.freeze(["enemy", "enemy2", "enemy3", "box", "badPrint", "sign", "printer", "star"]);
+const TARGET_ASSETS = Object.freeze([
+  "enemy", "enemy2", "enemy3", "box", "badPrint", "sign", "printer", "star",
+  "heatPress", "inkCan", "paintBallObject", "bombObject",
+]);
+const PLATFORM_ASSETS = Object.freeze([...PLATFORM_ASSET_KEYS]);
 const DECORATIVE_ASSETS = Object.freeze(["background", "logo", "slingshot", "badge", "puff"]);
 
 const canvas = document.getElementById("game-canvas");
@@ -220,7 +255,7 @@ const projectileNextLabel = document.getElementById("projectile-next-label");
 const projectileOrder = document.getElementById("projectile-order");
 
 const Matter = window.Matter;
-const { Engine, World, Bodies, Body, Events, Vector } = Matter || {};
+const { Engine, World, Bodies, Body, Events, Vector, Sleeping } = Matter || {};
 
 const ASSET_ROOT = "Assets/slingshot/";
 const assetPaths = {
@@ -242,13 +277,30 @@ const assetPaths = {
   backgroundLevel16: "background-level-16.png",
   backgroundLevel17: "background-level-17.png",
   backgroundLevel18: "background-level-18.png",
+  backgroundLevel19: "background-level-19.png",
+  backgroundLevel20: "background-level-20.png",
+  backgroundLevel21: "background-level-21.png",
+  backgroundLevel22: "background-level-22.png",
+  backgroundLevel23: "background-level-23.png",
+  backgroundLevel24: "background-level-24.png",
+  backgroundLevel25: "background-level-25.png",
   logo: "PTI%20-%20Logo.png",
   slingshot: "slingshot-game-rest.png",
   slingshotFrame: "slingshot-game-rest.png",
+  slingString1: "String1.png",
+  slingString2: "String2.png",
   ink: "projectile-ink-can.png",
   roll: "projectile-print-roll.png",
   parcel: "projectile-delivery-box.png",
   paint: "projectile-paint-ball.png",
+  tshirt: "tshirt.png",
+  table1: "table-1.png",
+  table2: "table-2.png",
+  table3: "table-3.png",
+  table4: "table-4.png",
+  table5: "table-5.png",
+  table6: "table-6.png",
+  table7: "table-7.png",
   woodH: "block-wood-horizontal.png",
   woodV: "block-wood-vertical.png",
   glass: "block-glass.png",
@@ -363,6 +415,7 @@ window.__ptiAssetRoles = {
   projectileOnly: PROJECTILE_ASSETS,
   worldObjects: WORLD_OBJECT_ASSETS,
   targets: TARGET_ASSETS,
+  platforms: PLATFORM_ASSETS,
   decorative: DECORATIVE_ASSETS,
 };
 
@@ -386,7 +439,7 @@ const SLING_LEVEL_LAYOUTS = [
     requiredTargetIds: ["target_1"],
     bonusObjectIds: [],
     objects: [
-      { id: "main_platform", type: "platform", x: -380, y: 16, width: 360, height: 32, isStatic: true },
+      { id: "main_platform", type: "platform", asset: "table-1", x: -380, y: 16, width: 360, height: 32, isStatic: true },
       { id: "target_1", type: "target", x: -380, y: -25, width: 46, height: 46, required: true, points: 500 },
     ],
   },
@@ -400,7 +453,7 @@ const SLING_LEVEL_LAYOUTS = [
     requiredTargetIds: ["target_1"],
     bonusObjectIds: [],
     objects: [
-      { id: "main_platform", type: "platform", x: -380, y: 16, width: 400, height: 32, isStatic: true },
+      { id: "main_platform", type: "platform", asset: "table-2", x: -380, y: 16, width: 400, height: 32, isStatic: true },
       { id: "wall_post_left", type: "verticalPost", x: -455, y: -30, width: 24, height: 60 },
       { id: "wall_post_right", type: "verticalPost", x: -405, y: -30, width: 24, height: 60 },
       { id: "wall_beam", type: "horizontalBeam", x: -430, y: -70, width: 86, height: 20 },
@@ -417,9 +470,9 @@ const SLING_LEVEL_LAYOUTS = [
     requiredTargetIds: ["target_low", "target_high"],
     bonusObjectIds: [],
     objects: [
-      { id: "lower_platform", type: "platform", x: -430, y: 16, width: 260, height: 32, isStatic: true },
+      { id: "lower_platform", type: "platform", asset: "table-3", x: -430, y: 16, width: 260, height: 32, isStatic: true },
       { id: "target_low", type: "target", x: -430, y: -25, width: 44, height: 44, required: true, points: 500 },
-      { id: "upper_platform", type: "platform", x: -330, y: -78, width: 190, height: 28, isStatic: true },
+      { id: "upper_platform", type: "platform", asset: "table-3", x: -330, y: -78, width: 190, height: 28, isStatic: true },
       { id: "target_high", type: "target", x: -330, y: -120, width: 44, height: 44, required: true, points: 500 },
     ],
   },
@@ -433,9 +486,9 @@ const SLING_LEVEL_LAYOUTS = [
     requiredTargetIds: ["target_1"],
     bonusObjectIds: ["bonus_star"],
     objects: [
-      { id: "main_platform", type: "platform", x: -500, y: 16, width: 340, height: 32, isStatic: true },
+      { id: "main_platform", type: "platform", asset: "table-2", x: -500, y: 16, width: 340, height: 32, isStatic: true },
       { id: "target_1", type: "target", x: -465, y: -25, width: 46, height: 46, required: true, points: 500 },
-      { id: "bonus_shelf", type: "platform", x: -400, y: -86, width: 130, height: 24, isStatic: true },
+      { id: "bonus_shelf", type: "platform", style: "shelf", x: -400, y: -86, width: 130, height: 24, isStatic: true },
       { id: "bonus_star", type: "bonusObject", x: -400, y: -120, width: 42, height: 42, bonus: true, points: 250 },
     ],
   },
@@ -449,7 +502,7 @@ const SLING_LEVEL_LAYOUTS = [
     requiredTargetIds: ["target_1"],
     bonusObjectIds: ["bonus_star"],
     objects: [
-      { id: "main_platform", type: "platform", x: -420, y: 16, width: 400, height: 32, isStatic: true },
+      { id: "main_platform", type: "platform", asset: "table-6", x: -420, y: 16, width: 400, height: 32, isStatic: true },
       { id: "tower_post_left", type: "verticalPost", x: -470, y: -42, width: 24, height: 84 },
       { id: "tower_post_right", type: "verticalPost", x: -370, y: -42, width: 24, height: 84 },
       { id: "tower_roof", type: "horizontalBeam", x: -420, y: -94, width: 132, height: 20 },
@@ -529,6 +582,7 @@ function syncArcadeShellMode() {
 
 let engine = null;
 let world = null;
+let layoutSettling = false;
 let cssW = 960;
 let cssH = 540;
 let worldW = 1500;
@@ -732,13 +786,14 @@ function loadLevelCheckpoint() {
 }
 
 function saveLevelCheckpoint(index) {
-  const next = clamp(index, 0, Math.max(0, levels.length - 1));
+  const requested = clamp(index, 0, Math.max(0, levels.length - 1));
+  const next = Math.max(loadLevelCheckpoint(), requested);
   localStorage.setItem(`${STORAGE_PREFIX}:level-checkpoint`, String(next));
   return next;
 }
 
 function resetLevelCheckpoint() {
-  saveLevelCheckpoint(0);
+  localStorage.setItem(`${STORAGE_PREFIX}:level-checkpoint`, "0");
   state.levelIndex = 0;
 }
 
@@ -1101,6 +1156,7 @@ function setupCanvasSize() {
 function createWorld() {
   engine = Engine.create();
   world = engine.world;
+  engine.enableSleeping = true;
   engine.gravity.y = 1.08 * PROJECTILE_GRAVITY_SCALE;
   World.add(world, [
     Bodies.rectangle(worldW / 2, groundY + 46, worldW + 160, 90, { isStatic: true, label: "ground", friction: 0.9 }),
@@ -1154,6 +1210,7 @@ function resetLevel(keepScore = false) {
 
   buildTower();
   stabilizeInitialLayout();
+  settleInitialLevelPhysics();
   spawnProjectile();
   updateHud();
 }
@@ -1243,7 +1300,8 @@ function addLevelObject(kind, x, y, scale = 1, angle = 0) {
     label: def.label,
     w,
     h,
-    points: NEW_ENEMY_RULES[kind] ? 0 : undefined,
+    points: NEW_ENEMY_RULES[kind] ? 0 : def.points,
+    health: def.health,
     bombDamage: 0,
     scored: false,
     contain: true,
@@ -1313,6 +1371,87 @@ function findSupportBelow(body, maxGap) {
   return best;
 }
 
+function wakePhysicsBody(body, nudge = false) {
+  if (!body || body.isStatic || body.label === "projectile") return false;
+  if (Sleeping) Sleeping.set(body, false);
+  if (nudge && Math.abs(body.velocity.y) < 0.2) {
+    Body.setVelocity(body, { x: body.velocity.x, y: Math.max(body.velocity.y, 0.45) });
+  }
+  return true;
+}
+
+function boundsCenter(bounds) {
+  return {
+    x: (bounds.min.x + bounds.max.x) / 2,
+    y: (bounds.min.y + bounds.max.y) / 2,
+  };
+}
+
+function cloneBounds(bounds) {
+  return {
+    min: { x: bounds.min.x, y: bounds.min.y },
+    max: { x: bounds.max.x, y: bounds.max.y },
+  };
+}
+
+function bodyTouchesSupportBounds(body, supportBounds, maxGap = 14) {
+  if (!body || !supportBounds) return false;
+  const left = body.bounds.min.x;
+  const right = body.bounds.max.x;
+  const bottom = body.bounds.max.y;
+  const supportLeft = supportBounds.min.x;
+  const supportRight = supportBounds.max.x;
+  const supportTop = supportBounds.min.y;
+  const minOverlap = Math.min(14, Math.max(8, (right - left) * 0.18));
+  const gap = supportTop - bottom;
+  return gap >= -5 && gap <= maxGap && overlapWidth(left, right, supportLeft, supportRight) >= minOverlap;
+}
+
+function wakeNearbyBodies(center, radius = 128, excludeBody = null, nudge = false) {
+  if (!center) return 0;
+  let woke = 0;
+  for (const body of bodies) {
+    if (!body?.plugin || body === excludeBody || body.plugin.scored || body.isStatic || body.label === "projectile") continue;
+    const distance = Vector.magnitude(Vector.sub(body.position, center));
+    if (distance > radius) continue;
+    if (wakePhysicsBody(body, nudge)) woke += 1;
+  }
+  return woke;
+}
+
+function wakeBodiesRestingOnBounds(supportBounds, nudge = true) {
+  if (!supportBounds) return 0;
+  let woke = 0;
+  const queue = [supportBounds];
+  const seen = new Set();
+
+  while (queue.length) {
+    const bounds = queue.shift();
+    for (const body of bodies) {
+      if (!body?.plugin || body.plugin.scored || body.isStatic || body.label === "projectile" || seen.has(body.id)) continue;
+      if (!bodyTouchesSupportBounds(body, bounds)) continue;
+      seen.add(body.id);
+      if (wakePhysicsBody(body, nudge)) woke += 1;
+      queue.push(cloneBounds(body.bounds));
+    }
+  }
+
+  return woke;
+}
+
+function wakeUnsupportedSleepingBodies() {
+  if (!state.hasLaunched || !Sleeping) return 0;
+  let woke = 0;
+  for (const body of bodies) {
+    if (!body?.plugin || body.plugin.scored || body.isStatic || body.label === "projectile" || !body.isSleeping) continue;
+    const highEnoughToFall = body.bounds.max.y < groundY - 6;
+    if (!highEnoughToFall) continue;
+    if (findSupportBelow(body, 10)) continue;
+    if (wakePhysicsBody(body, true)) woke += 1;
+  }
+  return woke;
+}
+
 function closeSmallLayoutGaps(maxGap) {
   for (let pass = 0; pass < 4; pass += 1) {
     let moved = false;
@@ -1359,14 +1498,27 @@ function stabilizeInitialLayout() {
 
 function platformPalette(index) {
   const palettes = [
-    { top: "#62d840", rim: "#2d9c2e", bodyTop: "#8a5328", bodyBottom: "#513012", stroke: "rgba(38,93,24,0.72)" },
-    { top: "#f0c65a", rim: "#bc7d29", bodyTop: "#8f4b22", bodyBottom: "#4b2612", stroke: "rgba(105,64,23,0.78)" },
-    { top: "#62d5ff", rim: "#2185b2", bodyTop: "#576575", bodyBottom: "#29313d", stroke: "rgba(90,206,255,0.50)" },
-    { top: "#c28cff", rim: "#7941d8", bodyTop: "#5b3587", bodyBottom: "#2b1847", stroke: "rgba(206,166,255,0.50)" },
-    { top: "#7ff5a1", rim: "#31a866", bodyTop: "#6b5540", bodyBottom: "#352619", stroke: "rgba(55,155,91,0.62)" },
-    { top: "#ff8f70", rim: "#c64934", bodyTop: "#70423a", bodyBottom: "#321d1b", stroke: "rgba(255,143,112,0.46)" },
+    { accent: "#ff9f1c", glow: "rgba(255,159,28,0.42)", trimTop: "#80ff6f", trimBottom: "#228f45", beltTop: "#1f6a56", beltBottom: "#06291f", bodyTop: "#155761", bodyBottom: "#05242b", stroke: "rgba(115,255,78,0.58)" },
+    { accent: "#ffb342", glow: "rgba(255,179,66,0.38)", trimTop: "#7dff63", trimBottom: "#2a9d4d", beltTop: "#205f50", beltBottom: "#06251f", bodyTop: "#184d58", bodyBottom: "#061e27", stroke: "rgba(255,179,66,0.56)" },
+    { accent: "#58d8ff", glow: "rgba(88,216,255,0.34)", trimTop: "#84ffbd", trimBottom: "#248f78", beltTop: "#1a5c67", beltBottom: "#061f29", bodyTop: "#174a64", bodyBottom: "#071d2a", stroke: "rgba(88,216,255,0.54)" },
+    { accent: "#c28cff", glow: "rgba(194,140,255,0.30)", trimTop: "#7dff63", trimBottom: "#268a52", beltTop: "#244f5b", beltBottom: "#0a1f2a", bodyTop: "#25405e", bodyBottom: "#101929", stroke: "rgba(194,140,255,0.48)" },
+    { accent: "#7ff5a1", glow: "rgba(127,245,161,0.30)", trimTop: "#9bff73", trimBottom: "#319f58", beltTop: "#1e6451", beltBottom: "#082a21", bodyTop: "#194f4c", bodyBottom: "#071e22", stroke: "rgba(127,245,161,0.52)" },
+    { accent: "#ff8f70", glow: "rgba(255,143,112,0.30)", trimTop: "#7dff63", trimBottom: "#278f46", beltTop: "#22574b", beltBottom: "#0a241f", bodyTop: "#25464d", bodyBottom: "#101d23", stroke: "rgba(255,143,112,0.46)" },
   ];
   return palettes[index % palettes.length];
+}
+
+function normalizePlatformAsset(asset) {
+  if (!asset) return null;
+  const key = String(asset).replace(/\.png$/i, "");
+  if (PLATFORM_ASSET_KEYS.includes(key)) return key;
+  return PLATFORM_ASSET_ALIASES[key] || null;
+}
+
+function platformAssetForLevel(levelIndex, platformIndex = 0, explicitAsset = null) {
+  const normalized = normalizePlatformAsset(explicitAsset);
+  if (normalized) return normalized;
+  return PLATFORM_ROTATION_KEYS[(Math.max(0, levelIndex) + Math.max(0, platformIndex)) % PLATFORM_ROTATION_KEYS.length];
 }
 
 function platformSpecsForLevel(level) {
@@ -1421,13 +1573,14 @@ function levelObjectMetrics(obj, baseX, baseY, s) {
 
 function addStaticPlatformFromLayout(obj, baseX, baseY, s, palette) {
   const { x, y, w, h } = levelObjectMetrics(obj, baseX, baseY, s);
+  const platformAsset = platformAssetForLevel(state.levelIndex, platforms.length, obj.asset);
   const shelf = Bodies.rectangle(x, y, w, h, {
     isStatic: true,
     label: "static",
     friction: 0.96,
   });
-  shelf.plugin = { id: obj.id, kind: "static", asset: "platform", layoutType: obj.type };
-  platforms.push({ id: obj.id, x, y, w, h, palette });
+  shelf.plugin = { id: obj.id, kind: "static", asset: platformAsset, layoutType: obj.type };
+  platforms.push({ id: obj.id, x, y, w, h, palette, asset: platformAsset, style: obj.style || "" });
   World.add(world, shelf);
   return shelf;
 }
@@ -1567,12 +1720,13 @@ function buildTower() {
     const px = baseX + offset * s;
     const pw = (p.width ?? 360) * s;
     const py = baseY + 16 * s - elevation * s;
+    const platformAsset = platformAssetForLevel(state.levelIndex, platforms.length, p.asset);
     const shelf = Bodies.rectangle(px, py, pw, 32 * s, {
       isStatic: true,
       label: "static",
     });
-    shelf.plugin = { kind: "static", asset: "platform" };
-    platforms.push({ x: px, y: py, w: pw, h: 32 * s, palette });
+    shelf.plugin = { kind: "static", asset: platformAsset };
+    platforms.push({ x: px, y: py, w: pw, h: 32 * s, palette, asset: platformAsset, style: p.style || "" });
     World.add(world, shelf);
   }
 
@@ -2624,6 +2778,8 @@ function spawnProjectile() {
     label: "projectile",
     collisionFilter: { mask: 0 },
   });
+  currentProjectile.sleepThreshold = Infinity;
+  if (Sleeping) Sleeping.set(currentProjectile, false);
   currentProjectile.deltaTime = 1000 / 60;
   currentProjectile.plugin = {
     kind: "projectile",
@@ -2648,6 +2804,12 @@ function spawnProjectile() {
   heldProjectilePosition = { ...anchor };
   projectileSpawnAnim = 0.32;
   World.add(world, currentProjectile);
+}
+
+function keepProjectileAwake(body) {
+  if (!body) return;
+  body.sleepThreshold = Infinity;
+  if (Sleeping && body.isSleeping) Sleeping.set(body, false);
 }
 
 function startGame(options = {}) {
@@ -2675,7 +2837,9 @@ function startGame(options = {}) {
 
 function startNextLevel() {
   ensureAudio();
-  state.levelIndex = saveLevelCheckpoint(Math.min(levels.length - 1, state.levelIndex + 1));
+  const nextLevelIndex = Math.min(levels.length - 1, state.levelIndex + 1);
+  saveLevelCheckpoint(nextLevelIndex);
+  state.levelIndex = nextLevelIndex;
   state.status = "running";
   state.paused = false;
   pausePanel.classList.add("hidden");
@@ -2845,6 +3009,7 @@ function explodeBasicBomb(body) {
   body.plugin.scored = true;
   const center = { ...body.position };
   const radius = clamp(cssW * 0.12, 92, 132);
+  wakeNearbyBodies(center, radius, body, true);
   awardScore(340, center.x, center.y, "BOMB");
   burst(center.x, center.y, "#ff8a24", 26);
   playSound("burst", 1.15);
@@ -2858,6 +3023,7 @@ function explodeBasicBomb(body) {
     if (distance > radius || distance < 1) continue;
     const falloff = 1 - distance / radius;
     const direction = Vector.normalise(offset);
+    wakePhysicsBody(item, true);
     Body.applyForce(item, item.position, {
       x: direction.x * 0.020 * falloff,
       y: direction.y * 0.012 * falloff - 0.010 * falloff,
@@ -2895,6 +3061,7 @@ function breakBlockFromEffect(body, color = "#8eeaff") {
   awardScore(body.plugin.asset === "metal" ? 120 : body.plugin.asset === "glass" ? 160 : 100, body.position.x, body.position.y, "BREAK");
   burst(body.position.x, body.position.y, color, 10);
   playSound("break", 0.85);
+  wakeNearbyBodies(body.position, clamp(cssW * 0.1, 86, 128), body, true);
   destroyBody(body);
   return true;
 }
@@ -2971,6 +3138,7 @@ function applyProjectileAreaEffect(projectileBody, hitBody, impact) {
       const falloff = distance < 1 ? 1 : 1 - distance / radius;
       if (distance >= 1) {
         const direction = Vector.normalise(offset);
+        wakePhysicsBody(item, true);
         Body.applyForce(item, item.position, {
           x: direction.x * (plugin.effectForce || 0.01) * falloff,
           y: -0.007 * falloff,
@@ -2993,6 +3161,7 @@ function applyProjectileAreaEffect(projectileBody, hitBody, impact) {
       if (distance > radius || distance < 1) continue;
       const falloff = 1 - distance / radius;
       const direction = Vector.normalise(offset);
+      wakePhysicsBody(item, true);
       Body.applyForce(item, item.position, {
         x: direction.x * (plugin.effectForce || 0.014) * falloff,
         y: -0.011 * falloff,
@@ -3024,6 +3193,7 @@ function handleNewObjectCollision(pairBodies, impact, projectileHit) {
 
 function handleCollisions(event) {
   if (state.status !== "running") return;
+  if (layoutSettling) return;
   for (const pair of event.pairs) {
     const bodiesInPair = [pair.bodyA, pair.bodyB];
     const projectileHit = bodiesInPair.some((b) => b.label === "projectile");
@@ -3031,6 +3201,11 @@ function handleCollisions(event) {
     const impactBoost = projectileBody?.plugin?.impactBoost || 1;
     const impact = Vector.magnitude(Vector.sub(pair.bodyA.velocity, pair.bodyB.velocity)) * impactBoost;
     const hitBody = bodiesInPair.find((b) => b.plugin && b.plugin.kind !== "projectile" && b.plugin.kind !== "static");
+    if (projectileHit && hitBody) {
+      wakeNearbyBodies(hitBody.position, clamp(cssW * 0.11, 92, 146), projectileBody);
+      wakeBodiesRestingOnBounds(cloneBounds(hitBody.bounds), true);
+      wakePhysicsBody(hitBody);
+    }
     const wallHit = projectileHit && bodiesInPair.some((b) => b.label === "wall");
     if (wallHit && projectileBody) {
       projectileBody.plugin.expiredByBoundary = true;
@@ -3099,6 +3274,19 @@ function addImpactScore(body, impact, projectileHit, projectileBody = null) {
       awardScore(plugin.asset === "metal" ? 120 : plugin.asset === "glass" ? 160 : 100, body.position.x, body.position.y, "BREAK");
       burst(body.position.x, body.position.y, "#8eeaff", 12);
       playSound("break", impact / 7);
+      wakeNearbyBodies(body.position, clamp(cssW * 0.1, 88, 132), body, true);
+      destroyBody(body);
+    }
+  }
+  if (plugin.kind === "levelObject") {
+    state.score += projectileHit ? 14 : 5;
+    plugin.health = (plugin.health ?? 1.5) - (projectileHit ? ((impact > 6 ? 1.6 : 1.1) * damageScale) : (impact > 6 ? 0.9 : 0.45));
+    if (plugin.health <= 0 || (projectileHit && impact > 8.4)) {
+      plugin.scored = true;
+      awardScore(plugin.points ?? 300, body.position.x, body.position.y, "BREAK");
+      burst(body.position.x, body.position.y, "#ffb342", 12);
+      playSound("break", impact / 7);
+      wakeNearbyBodies(body.position, clamp(cssW * 0.1, 88, 132), body, true);
       destroyBody(body);
     }
   }
@@ -3122,9 +3310,13 @@ function addImpactScore(body, impact, projectileHit, projectileBody = null) {
 }
 
 function destroyBody(body) {
+  const removedBounds = body?.bounds ? cloneBounds(body.bounds) : null;
+  const removedCenter = body?.position ? { ...body.position } : (removedBounds ? boundsCenter(removedBounds) : null);
   World.remove(world, body);
   bodies = bodies.filter((item) => item !== body);
   targets = targets.filter((item) => item !== body);
+  wakeBodiesRestingOnBounds(removedBounds, true);
+  wakeNearbyBodies(removedCenter, clamp(cssW * 0.1, 88, 138), body, true);
 }
 
 function freezeWorldMotion() {
@@ -3132,6 +3324,22 @@ function freezeWorldMotion() {
     if (!body || body.isStatic || body.label === "projectile") continue;
     Body.setVelocity(body, { x: 0, y: 0 });
     Body.setAngularVelocity(body, 0);
+  }
+}
+
+function settleInitialLevelPhysics() {
+  if (!engine) return;
+  layoutSettling = true;
+  for (let i = 0; i < 120; i += 1) {
+    Engine.update(engine, 1000 / 60 * PHYSICS_TIME_SCALE);
+  }
+  layoutSettling = false;
+  freezeWorldMotion();
+  if (Sleeping) {
+    for (const body of bodies) {
+      if (!body || body.isStatic || body.label === "projectile") continue;
+      Sleeping.set(body, true);
+    }
   }
 }
 
@@ -3165,6 +3373,7 @@ function explodeBomb(body) {
     }
     if (item.plugin.kind === "block") {
       item.plugin.health -= 2.4;
+      wakePhysicsBody(item, true);
       Body.applyForce(item, item.position, {
         x: (item.position.x - center.x) * 0.00016,
         y: -0.018,
@@ -3199,6 +3408,7 @@ function activateShotAbility() {
     if (distance > radius) continue;
 
     const falloff = 1 - distance / radius;
+    wakePhysicsBody(item, true);
     Body.applyForce(item, item.position, {
       x: dx * BURST_FORCE * falloff,
       y: -BURST_LIFT_FORCE * falloff,
@@ -3382,6 +3592,7 @@ function onPointerMove(event) {
   const x = anchor.x + limited.x;
   const y = anchor.y + limited.y;
   heldProjectilePosition = { x, y };
+  keepProjectileAwake(currentProjectile);
   Body.setPosition(currentProjectile, heldProjectilePosition);
   Body.setVelocity(currentProjectile, { x: 0, y: 0 });
   Body.setAngularVelocity(currentProjectile, 0);
@@ -3398,6 +3609,7 @@ function cancelDrag(event) {
   dragging = false;
   canvas.style.cursor = "grab";
   heldProjectilePosition = { ...anchor };
+  keepProjectileAwake(currentProjectile);
   Body.setPosition(currentProjectile, heldProjectilePosition);
   Body.setVelocity(currentProjectile, { x: 0, y: 0 });
   Body.setAngularVelocity(currentProjectile, 0);
@@ -3433,11 +3645,13 @@ function fireCurrentProjectile() {
   lastLaunch = { pointer: { ...pointer }, anchor: { ...anchor }, velocity: velocity ? { ...velocity } : null };
   if (!velocity) {
     heldProjectilePosition = { ...anchor };
+    keepProjectileAwake(currentProjectile);
     Body.setPosition(currentProjectile, anchor);
     Body.setVelocity(currentProjectile, { x: 0, y: 0 });
     Body.setAngularVelocity(currentProjectile, 0);
     return;
   }
+  keepProjectileAwake(currentProjectile);
   currentProjectile.collisionFilter.mask = 0xFFFFFFFF;
   currentProjectile.deltaTime = 1000 / 60;
   Body.setPosition(currentProjectile, anchor);
@@ -3490,11 +3704,9 @@ function completeShot() {
   if (remainingTargets() === 0) {
     setTimeout(finishLevel, 220);
   } else if (state.shots > 0) {
-    state.hasLaunched = false;
-    freezeWorldMotion();
     nextProjectileDelay = 0.35;
   } else {
-    state.settling = 0.75;
+    state.settling = 2.4;
   }
 }
 
@@ -3503,20 +3715,20 @@ function update(delta) {
   if (projectileSpawnAnim > 0) projectileSpawnAnim = Math.max(0, projectileSpawnAnim - delta);
   if (currentProjectile) {
     const hold = dragging && heldProjectilePosition ? heldProjectilePosition : anchor;
+    keepProjectileAwake(currentProjectile);
     Body.setPosition(currentProjectile, hold);
     Body.setVelocity(currentProjectile, { x: 0, y: 0 });
     Body.setAngularVelocity(currentProjectile, 0);
   }
-  const physicsActive = state.hasLaunched || launchedProjectile;
-  if (physicsActive) {
-    Engine.update(engine, delta * 1000 * PHYSICS_TIME_SCALE);
-  }
+  Engine.update(engine, delta * 1000 * PHYSICS_TIME_SCALE);
   if (currentProjectile) {
     const hold = dragging && heldProjectilePosition ? heldProjectilePosition : anchor;
+    keepProjectileAwake(currentProjectile);
     Body.setPosition(currentProjectile, hold);
     Body.setVelocity(currentProjectile, { x: 0, y: 0 });
     Body.setAngularVelocity(currentProjectile, 0);
   }
+  wakeUnsupportedSleepingBodies();
   window.__ptiDebug = {
     dragging,
     current: currentProjectile ? { x: currentProjectile.position.x, y: currentProjectile.position.y } : null,
@@ -3543,7 +3755,7 @@ function update(delta) {
     cssW,
     cssH,
     worldW,
-    platforms: platforms.map((p) => ({ x: p.x, y: p.y, w: p.w, h: p.h })),
+    platforms: platforms.map((p) => ({ x: p.x, y: p.y, w: p.w, h: p.h, asset: p.asset })),
     shotAbilityUsed,
     shotAbilityUsesThisShot,
     burstReady: Boolean(launchedProjectile && launchRealAge >= BURST_AVAILABLE_DELAY && shotAbilityUsesThisShot < BURST_MAX_USES_PER_SHOT),
@@ -3642,7 +3854,7 @@ function drawCover(img, x, y, w, h) {
 
 function drawBackgroundCover(x, y, w, h) {
   const levelNumber = state.levelIndex + 1;
-  const levelKey = levelNumber >= 2 && levelNumber <= 18
+  const levelKey = levelNumber >= 2 && levelNumber <= 25
     ? `backgroundLevel${String(levelNumber).padStart(2, "0")}`
     : "background";
   const background = assets[levelKey] || assets.background;
@@ -3868,7 +4080,8 @@ function drawBody(body, positionOverride = null) {
   } else if (plugin.kind === "block" || plugin.kind === "bomb") {
     drawBlockShape(plugin, w, h);
   } else if (img) {
-    ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    if (plugin.kind === "projectile") drawContain(img, -w / 2, -h / 2, w, h);
+    else ctx.drawImage(img, -w / 2, -h / 2, w, h);
   } else {
     ctx.fillStyle = plugin.kind === "projectile" ? "#ff3df2" : "#8eeaff";
     roundRect(-w / 2, -h / 2, w, h, 6);
@@ -3905,7 +4118,7 @@ function drawProjectileToken(projectileType, x, y, size, active = false) {
     ctx.arc(0, 0, Math.max(w, h) * 0.48, 0, Math.PI * 2);
     ctx.stroke();
   } else if (img) {
-    ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    drawContain(img, -w / 2, -h / 2, w, h);
   } else {
     ctx.fillStyle = metrics.tint || "#ff4bd8";
     ctx.beginPath();
@@ -3946,6 +4159,162 @@ function currentProjectileDrawPosition() {
   };
 }
 
+function pointToward(from, to, distance) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.max(1, Math.hypot(dx, dy));
+  return {
+    x: from.x + (dx / length) * distance,
+    y: from.y + (dy / length) * distance,
+  };
+}
+
+function drawFallbackElasticCurve(from, to, width, curveOffset = 0) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.max(1, Math.hypot(dx, dy));
+  const nx = -dy / length;
+  const ny = dx / length;
+  const control = {
+    x: (from.x + to.x) / 2 + nx * curveOffset,
+    y: (from.y + to.y) / 2 + ny * curveOffset + Math.min(5, length * 0.018),
+  };
+
+  ctx.save();
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.shadowColor = "rgba(0,0,0,0.45)";
+  ctx.shadowBlur = 5;
+  ctx.shadowOffsetY = 2;
+  ctx.strokeStyle = "#160a04";
+  ctx.lineWidth = width + 2.2;
+  ctx.beginPath();
+  ctx.moveTo(from.x, from.y);
+  ctx.quadraticCurveTo(control.x, control.y, to.x, to.y);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.strokeStyle = "#3a1d0d";
+  ctx.lineWidth = width;
+  ctx.beginPath();
+  ctx.moveTo(from.x, from.y);
+  ctx.quadraticCurveTo(control.x, control.y, to.x, to.y);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(218,142,78,0.62)";
+  ctx.lineWidth = Math.max(1.2, width * 0.28);
+  ctx.beginPath();
+  ctx.moveTo(from.x + nx * width * 0.18, from.y + ny * width * 0.18);
+  ctx.quadraticCurveTo(
+    control.x + nx * width * 0.18,
+    control.y + ny * width * 0.18,
+    to.x + nx * width * 0.18,
+    to.y + ny * width * 0.18
+  );
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawSlingStringSprite(img, start, end, targetHeight) {
+  if (!img) return false;
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const distance = Math.max(1, Math.hypot(dx, dy));
+  const angle = Math.atan2(dy, dx);
+  const startCapSrc = clamp(SLING_STRING_SOURCE_CAPS.start, 1, img.width * 0.38);
+  const endCapSrc = clamp(SLING_STRING_SOURCE_CAPS.end, 1, Math.max(1, img.width - startCapSrc - 1));
+  const middleSrcX = startCapSrc;
+  const middleSrcW = Math.max(1, img.width - startCapSrc - endCapSrc);
+  const scale = targetHeight / Math.max(1, img.height);
+  const startCapW = startCapSrc * scale;
+  const endCapW = endCapSrc * scale;
+  const startOverlap = targetHeight * SLING_STRING_OVERLAP.start;
+  const endOverlap = targetHeight * SLING_STRING_OVERLAP.end;
+  const visualLength = Math.max(distance + startOverlap + endOverlap, startCapW + endCapW + targetHeight);
+  const drawX = -startOverlap;
+  const drawY = -targetHeight / 2;
+
+  ctx.save();
+  ctx.translate(start.x, start.y);
+  ctx.rotate(angle);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.shadowColor = "rgba(0,0,0,0.45)";
+  ctx.shadowBlur = 3.5;
+  ctx.shadowOffsetY = 1.5;
+
+  if (visualLength <= startCapW + endCapW + targetHeight) {
+    ctx.drawImage(img, 0, 0, img.width, img.height, drawX, drawY, visualLength, targetHeight);
+  } else {
+    const middleDstW = Math.max(1, visualLength - startCapW - endCapW);
+    ctx.drawImage(img, 0, 0, startCapSrc, img.height, drawX, drawY, startCapW, targetHeight);
+    ctx.drawImage(img, middleSrcX, 0, middleSrcW, img.height, drawX + startCapW, drawY, middleDstW, targetHeight);
+    ctx.drawImage(img, img.width - endCapSrc, 0, endCapSrc, img.height, drawX + visualLength - endCapW, drawY, endCapW, targetHeight);
+  }
+
+  ctx.restore();
+  return true;
+}
+
+function drawSlingPouch(pouchCenter, angle, projectileSize) {
+  const pouchW = clamp(projectileSize * 0.46, 18, 30);
+  const pouchH = clamp(projectileSize * 0.28, 11, 18);
+  ctx.save();
+  ctx.translate(pouchCenter.x, pouchCenter.y);
+  ctx.rotate(angle);
+  ctx.shadowColor = "rgba(0,0,0,0.4)";
+  ctx.shadowBlur = 5;
+  ctx.shadowOffsetY = 2;
+  const pouch = ctx.createLinearGradient(0, -pouchH / 2, 0, pouchH / 2);
+  pouch.addColorStop(0, "#5a2c12");
+  pouch.addColorStop(1, "#1c0b04");
+  ctx.fillStyle = pouch;
+  roundRect(-pouchW / 2, -pouchH / 2, pouchW, pouchH, pouchH * 0.45);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = "rgba(255,190,112,0.36)";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawSlingStrings(leftFork, rightFork, projectilePosition) {
+  const plugin = currentProjectile?.plugin || {};
+  const projectileSize = Math.max(plugin.w || 42, plugin.h || 42);
+  const pouchRadius = projectileSize * 0.34;
+  const stringHeight = clamp(
+    cssW * SLING_STRING_TARGET_HEIGHT.ratio,
+    SLING_STRING_TARGET_HEIGHT.min,
+    SLING_STRING_TARGET_HEIGHT.max
+  );
+  const leftEnd = pointToward(projectilePosition, leftFork, pouchRadius);
+  const rightEnd = pointToward(projectilePosition, rightFork, pouchRadius);
+  const pouchCenter = {
+    x: (leftEnd.x + rightEnd.x) / 2,
+    y: (leftEnd.y + rightEnd.y) / 2,
+  };
+  const hasStringAssets = assets.slingString1 && assets.slingString2;
+
+  if (hasStringAssets) {
+    drawSlingStringSprite(assets.slingString1, leftFork, leftEnd, stringHeight);
+    drawSlingStringSprite(assets.slingString2, rightFork, rightEnd, stringHeight);
+  } else {
+    const bandWidth = clamp(cssW * 0.0085, 5.2, 8.5);
+    drawFallbackElasticCurve(leftFork, leftEnd, bandWidth, -bandWidth * 0.35);
+    drawFallbackElasticCurve(rightFork, rightEnd, bandWidth, bandWidth * 0.35);
+  }
+
+  const forkMid = {
+    x: (leftFork.x + rightFork.x) / 2,
+    y: (leftFork.y + rightFork.y) / 2,
+  };
+  drawSlingPouch(pouchCenter, Math.atan2(forkMid.y - projectilePosition.y, forkMid.x - projectilePosition.x), projectileSize);
+}
+
+function slingPouchVisualPosition() {
+  if (dragging && currentProjectile) return currentProjectile.position;
+  return anchor;
+}
+
 function drawSlingshot() {
   const geom = slingshotGeometry();
   const leftFork = rotatedLocalPoint(geom, SLINGSHOT_LEFT_BAND);
@@ -3953,6 +4322,9 @@ function drawSlingshot() {
   const slingAsset = dragging && currentProjectile && assets.slingshotFrame
     ? assets.slingshotFrame
     : assets.slingshot;
+  const pouchPosition = slingPouchVisualPosition();
+
+  if (dragging && currentProjectile) drawTrajectoryPreview();
 
   ctx.save();
   if (slingAsset) {
@@ -3972,42 +4344,7 @@ function drawSlingshot() {
   }
   ctx.restore();
 
-  const projectile = currentProjectile || launchedProjectile;
-  if (dragging && currentProjectile) {
-    drawTrajectoryPreview();
-
-    const leftAnchor = leftFork;
-    const rightAnchor = rightFork;
-    const pp = projectile.position;
-    const bandWidth = clamp(cssW * 0.009, 5, 9);
-
-    ctx.save();
-    ctx.shadowColor = "rgba(0,0,0,0.45)";
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetY = 2;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.strokeStyle = "#3a1f10";
-    ctx.lineWidth = bandWidth;
-    ctx.beginPath();
-    ctx.moveTo(leftAnchor.x, leftAnchor.y);
-    ctx.lineTo(pp.x, pp.y);
-    ctx.lineTo(rightAnchor.x, rightAnchor.y);
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.save();
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.strokeStyle = "rgba(214,140,72,0.55)";
-    ctx.lineWidth = Math.max(1.5, bandWidth * 0.32);
-    ctx.beginPath();
-    ctx.moveTo(leftAnchor.x, leftAnchor.y - 1);
-    ctx.lineTo(pp.x, pp.y - 1);
-    ctx.lineTo(rightAnchor.x, rightAnchor.y - 1);
-    ctx.stroke();
-    ctx.restore();
-  }
+  drawSlingStrings(leftFork, rightFork, pouchPosition);
 }
 
 function drawTrajectoryPreview() {
@@ -4030,43 +4367,161 @@ function drawTrajectoryPreview() {
   ctx.restore();
 }
 
+const PLATFORM_DRAW_PROFILES = Object.freeze({
+  table1: { maxH: 124, minH: 68, topRatio: 0.08, pad: 22 },
+  table2: { maxH: 88, minH: 50, topRatio: 0.13, pad: 18 },
+  table3: { maxH: 118, minH: 58, topRatio: 0.11, pad: 20 },
+  table4: { maxH: 68, minH: 34, topRatio: 0.10, pad: 16 },
+  table5: { maxH: 50, minH: 28, topRatio: 0.08, pad: 14 },
+  table6: { maxH: 86, minH: 48, topRatio: 0.08, pad: 20 },
+  table7: { maxH: 88, minH: 48, topRatio: 0.08, pad: 20 },
+});
+
+function drawGeneratedPlatform(platform, palette) {
+  const x = platform.x - platform.w / 2;
+  const y = platform.y - platform.h / 2;
+  const topH = Math.max(12, platform.h * 0.42);
+  const bodyH = Math.max(19, platform.h * 0.68);
+  const topY = y - Math.max(3, platform.h * 0.12);
+  const bodyY = y + topH * 0.42;
+  const radius = clamp(platform.h * 0.28, 7, 12);
+  const accent = palette.accent || palette.rim || "#ff9f1c";
+  const trimTopColor = palette.trimTop || palette.top || "#7dff63";
+  const trimBottomColor = palette.trimBottom || palette.rim || "#228f45";
+  const beltTopColor = palette.beltTop || palette.bodyTop || "#1f6a56";
+  const beltBottomColor = palette.beltBottom || palette.bodyBottom || "#06291f";
+
+  ctx.save();
+  ctx.globalAlpha = 0.24;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.58)";
+  roundRect(x + 12, y + platform.h * 0.92, platform.w - 24, Math.max(8, platform.h * 0.34), 12);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  ctx.shadowColor = palette.glow || "rgba(115,255,78,0.22)";
+  ctx.shadowBlur = 18;
+  ctx.shadowOffsetY = 6;
+  const body = ctx.createLinearGradient(0, bodyY, 0, bodyY + bodyH);
+  body.addColorStop(0, palette.bodyTop);
+  body.addColorStop(1, palette.bodyBottom);
+  ctx.fillStyle = body;
+  roundRect(x + 2, bodyY, platform.w - 4, bodyH, radius);
+  ctx.fill();
+  ctx.shadowColor = "transparent";
+
+  ctx.strokeStyle = "rgba(255,255,255,0.12)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  const top = ctx.createLinearGradient(0, topY, 0, topY + topH);
+  top.addColorStop(0, trimTopColor);
+  top.addColorStop(0.34, trimBottomColor);
+  top.addColorStop(1, beltBottomColor);
+  ctx.fillStyle = top;
+  roundRect(x - 6, topY, platform.w + 12, topH, radius + 2);
+  ctx.fill();
+  ctx.strokeStyle = palette.stroke;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  const beltY = topY + topH * 0.34;
+  const beltH = Math.max(7, topH * 0.45);
+  const belt = ctx.createLinearGradient(0, beltY, 0, beltY + beltH);
+  belt.addColorStop(0, beltTopColor);
+  belt.addColorStop(1, beltBottomColor);
+  ctx.fillStyle = belt;
+  roundRect(x + 7, beltY, platform.w - 14, beltH, beltH / 2);
+  ctx.fill();
+
+  ctx.globalAlpha = 0.5;
+  ctx.strokeStyle = "rgba(255,255,255,0.55)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let tx = x + 24; tx < x + platform.w - 18; tx += 32) {
+    ctx.moveTo(tx, beltY + beltH * 0.22);
+    ctx.lineTo(tx + 12, beltY + beltH * 0.22);
+  }
+  ctx.stroke();
+
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = accent;
+  roundRect(x - 3, bodyY + bodyH * 0.18, 8, bodyH * 0.58, 4);
+  ctx.fill();
+  roundRect(x + platform.w - 5, bodyY + bodyH * 0.18, 8, bodyH * 0.58, 4);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(255,255,255,0.72)";
+  for (let bx = x + 24; bx <= x + platform.w - 24; bx += 72) {
+    ctx.beginPath();
+    ctx.arc(bx, bodyY + bodyH * 0.45, 2.1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (platform.w > 165) {
+    const legW = clamp(platform.h * 0.18, 5, 8);
+    const legH = Math.max(13, platform.h * 0.46);
+    const legTop = bodyY + bodyH * 0.72;
+    const leg = ctx.createLinearGradient(0, legTop, 0, legTop + legH);
+    leg.addColorStop(0, "#144f57");
+    leg.addColorStop(1, "#061e25");
+    ctx.fillStyle = leg;
+    for (const lx of [x + platform.w * 0.24, x + platform.w * 0.76]) {
+      roundRect(lx - legW / 2, legTop, legW, legH, 3);
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawTablePlatformImage(platform, img, palette) {
+  const topY = platformTop(platform);
+  const profile = PLATFORM_DRAW_PROFILES[platform.asset] || PLATFORM_DRAW_PROFILES.table2;
+  const scale = clamp(cssW / 960, 0.72, 1.25);
+  const visualW = platform.w + profile.pad * scale;
+  const naturalH = visualW * (img.height / Math.max(1, img.width));
+  const visualH = clamp(naturalH, profile.minH * scale, profile.maxH * scale);
+  const x = platform.x - visualW / 2;
+  const y = topY - visualH * profile.topRatio;
+
+  ctx.save();
+  ctx.shadowColor = palette?.glow || "rgba(0,0,0,0.28)";
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetY = 8;
+  ctx.globalAlpha = 0.25;
+  ctx.fillStyle = "rgba(0,0,0,0.58)";
+  roundRect(x + visualW * 0.07, topY + visualH * 0.62, visualW * 0.86, Math.max(7, visualH * 0.13), 14);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  const imageScale = Math.max(visualW / img.width, visualH / img.height);
+  const sw = Math.min(img.width, visualW / imageScale);
+  const sh = Math.min(img.height, visualH / imageScale);
+  const sx = (img.width - sw) * 0.5;
+  const sy = 0;
+  ctx.drawImage(img, sx, sy, sw, sh, x, y, visualW, visualH);
+
+  ctx.shadowColor = "transparent";
+  ctx.globalAlpha = 0.58;
+  ctx.strokeStyle = palette?.stroke || "rgba(115,255,78,0.42)";
+  ctx.lineWidth = Math.max(1.2, platform.h * 0.055);
+  ctx.beginPath();
+  ctx.moveTo(platform.x - platform.w * 0.43, topY + 1);
+  ctx.lineTo(platform.x + platform.w * 0.43, topY + 1);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawPlatforms() {
   for (const platform of platforms) {
-    const x = platform.x - platform.w / 2;
-    const y = platform.y - platform.h / 2;
     const palette = platform.palette || platformPalette(0);
-    ctx.save();
-    ctx.shadowColor = "rgba(0,0,0,0.28)";
-    ctx.shadowBlur = 12;
-    ctx.shadowOffsetY = 8;
-    const body = ctx.createLinearGradient(0, y, 0, y + platform.h);
-    body.addColorStop(0, palette.bodyTop);
-    body.addColorStop(1, palette.bodyBottom);
-    ctx.fillStyle = body;
-    roundRect(x, y + platform.h * 0.22, platform.w, platform.h * 0.70, 6);
-    ctx.fill();
-
-    ctx.shadowColor = "transparent";
-    const top = ctx.createLinearGradient(0, y - 3, 0, y + platform.h * 0.42);
-    top.addColorStop(0, palette.top);
-    top.addColorStop(1, palette.rim);
-    ctx.fillStyle = top;
-    roundRect(x - 4, y - 3, platform.w + 8, platform.h * 0.38, 8);
-    ctx.fill();
-    ctx.strokeStyle = palette.stroke;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    ctx.globalAlpha = 0.28;
-    ctx.strokeStyle = "rgba(255,255,255,0.85)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let tx = x + 16; tx < x + platform.w - 10; tx += 34) {
-      ctx.moveTo(tx, y + platform.h * 0.14);
-      ctx.lineTo(tx + 12, y + platform.h * 0.10);
+    const tableImg = assets[platform.asset] || assets.table1;
+    const compactShelf = platform.style === "shelf" || platform.w < clamp(cssW * 0.17, 145, 190);
+    if (tableImg && !compactShelf) {
+      drawTablePlatformImage(platform, tableImg, palette);
+      continue;
     }
-    ctx.stroke();
-    ctx.restore();
+    drawGeneratedPlatform(platform, palette);
   }
 }
 

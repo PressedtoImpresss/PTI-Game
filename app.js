@@ -431,7 +431,14 @@ function getLevelDef(levelNumber = gameState.levelIndex + 1) {
 
 function getUnlockedLevel() {
   const saved = parseInt(localStorage.getItem(INK_FLIGHT_STORAGE.unlockedLevel) || "1", 10);
-  return Math.max(1, Math.min(INK_FLIGHT_LEVELS.length, Number.isFinite(saved) ? saved : 1));
+  const savedLevel = Math.max(1, Math.min(INK_FLIGHT_LEVELS.length, Number.isFinite(saved) ? saved : 1));
+  const completed = readLocalJson(INK_FLIGHT_STORAGE.completedLevels, []);
+  const highestCompleted = Array.isArray(completed)
+    ? Math.max(0, ...completed.map((value) => Math.floor(Number(value))).filter((value) => value >= 1 && value <= INK_FLIGHT_LEVELS.length))
+    : 0;
+  const repairedLevel = Math.max(savedLevel, Math.min(INK_FLIGHT_LEVELS.length, highestCompleted + 1));
+  if (repairedLevel !== savedLevel) localStorage.setItem(INK_FLIGHT_STORAGE.unlockedLevel, String(repairedLevel));
+  return repairedLevel;
 }
 
 function saveUnlockedLevel(levelNumber) {
@@ -2944,7 +2951,6 @@ function render() {
   drawScorePopups();
   drawBanner();
   drawLevelProgressBar();
-  drawLevelTip();
   drawPrompt();
   drawHoopCounter();
   drawPowerupStatus();
