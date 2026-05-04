@@ -508,6 +508,25 @@ const state = {
   hasLaunched: false,
 };
 
+function setArcadeShellMode(mode) {
+  const modeClasses = ["arcade-home-mode", "arcade-menu-mode", "arcade-game-mode"];
+  [document.documentElement, document.body].forEach((el) => {
+    if (!el) return;
+    modeClasses.forEach((className) => el.classList.remove(className));
+    el.classList.add(`arcade-${mode}-mode`);
+  });
+}
+
+function syncArcadeShellMode() {
+  if (state.status === "idle" || state.status === "loading") {
+    setArcadeShellMode("home");
+  } else if (state.status === "game-select" || state.status === "select") {
+    setArcadeShellMode("menu");
+  } else {
+    setArcadeShellMode("game");
+  }
+}
+
 let engine = null;
 let world = null;
 let cssW = 960;
@@ -966,6 +985,7 @@ function makeCutout(img, key) {
 }
 
 function updateHud() {
+  syncArcadeShellMode();
   scoreValue.textContent = String(Math.floor(state.score));
   shotsValue.textContent = String(Math.max(0, state.shots));
   bestValue.textContent = String(state.best);
@@ -4521,6 +4541,7 @@ if (playerNameInput && window.PTIArcade?.getSavedPlayerName) {
 
 loadAssets().then(() => {
   state.status = "idle";
+  syncArcadeShellMode();
   renderLevelSelect();
   startOverlay.style.display = "";
   render();
