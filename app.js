@@ -54,6 +54,13 @@ const C = {
 
 const canvas             = document.getElementById("game-canvas");
 const ctx                = canvas.getContext("2d");
+const IS_MOBILE_FLIGHT_PORTRAIT = window.matchMedia("(max-width: 700px) and (orientation: portrait)").matches;
+if (IS_MOBILE_FLIGHT_PORTRAIT) {
+  canvas.width = 540;
+  canvas.height = 960;
+  document.documentElement.classList.add("cave-flight-mobile-portrait");
+  document.body?.classList.add("cave-flight-mobile-portrait");
+}
 const ptiLogoImg         = new Image();
 let   ptiLogoReady       = false;
 ptiLogoImg.onload        = () => { ptiLogoReady = true; };
@@ -144,6 +151,8 @@ const COLUMN_WIDTH = 24;
 const COLUMN_COUNT = Math.ceil(WORLD_WIDTH / COLUMN_WIDTH) + 6;
 const PLAYABLE_TOP_PADDING = 72;
 const PLAYABLE_BOTTOM_PADDING = 104;
+const MOBILE_FLIGHT_SPEED_SCALE = IS_MOBILE_FLIGHT_PORTRAIT ? 0.84 : 1;
+const MOBILE_FLIGHT_GAP_BONUS = IS_MOBILE_FLIGHT_PORTRAIT ? 170 : 0;
 
 // â”€â”€ LEVELS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -281,16 +290,17 @@ function getLevelForScore(score) {
 
 const cave = {
   ceiling:     new Array(COLUMN_COUNT).fill(72),
-  floor:       new Array(COLUMN_COUNT).fill(540),
+  floor:       new Array(COLUMN_COUNT).fill(WORLD_HEIGHT),
   offset:      0,
   nextCeiling: 72,
-  nextFloor:   540,
+  nextFloor:   WORLD_HEIGHT,
 };
 
 // â”€â”€ HELICOPTER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const helicopter = {
-  x: 122, y: 308,
+  x: IS_MOBILE_FLIGHT_PORTRAIT ? 94 : 122,
+  y: IS_MOBILE_FLIGHT_PORTRAIT ? WORLD_HEIGHT * 0.46 : 308,
   width: 54, height: 24,
   velocityY: 0,
   rotor: 0,
@@ -479,15 +489,18 @@ function isLevelUnlocked(levelNumber) {
 
 function getSpeedForScore(score) {
   const base = LEVEL_DEFS[gameState.levelIndex].baseSpeed;
-  if (score < 250) return base;
-  if (score < 500) return base + 14;
-  if (score < 700) return base + 24;
-  return base + 32;
+  let speed;
+  if (score < 250) speed = base;
+  else if (score < 500) speed = base + 14;
+  else if (score < 700) speed = base + 24;
+  else speed = base + 32;
+  return speed * MOBILE_FLIGHT_SPEED_SCALE;
 }
 
 function getGapForScore(score) {
-  const base      = LEVEL_DEFS[gameState.levelIndex].baseGap;
-  const wideStart = 520; // all levels start with a generous opening
+  const maxPortraitGap = WORLD_HEIGHT - PLAYABLE_TOP_PADDING - PLAYABLE_BOTTOM_PADDING - 64;
+  const base      = Math.min(maxPortraitGap, LEVEL_DEFS[gameState.levelIndex].baseGap + MOBILE_FLIGHT_GAP_BONUS);
+  const wideStart = IS_MOBILE_FLIGHT_PORTRAIT ? Math.min(maxPortraitGap, 720) : 520; // all levels start with a generous opening
   // Smoothly narrow from wideStart to base. Level 4+ eases in over a longer run.
   const lateLevel = gameState.levelIndex >= 3;
   const shrinkDistance = lateLevel ? 520 : 300;
@@ -590,7 +603,9 @@ function generateNextColumn(index, initializing = false) {
 function resetCave() {
   cave.offset = 0;
   // Start cave centred â€” wide opening, symmetric top and bottom
-  const startGap = 520;
+  const startGap = IS_MOBILE_FLIGHT_PORTRAIT
+    ? Math.min(WORLD_HEIGHT - PLAYABLE_TOP_PADDING - PLAYABLE_BOTTOM_PADDING - 64, 720)
+    : 520;
   cave.nextCeiling = Math.round((WORLD_HEIGHT - startGap) / 2);
   cave.nextFloor   = cave.nextCeiling + startGap;
   for (let i = 0; i < COLUMN_COUNT; i++) {
@@ -1021,7 +1036,7 @@ function resetGame(fullReset = true) {
   }
   const levelDef = getLevelDef(gameState.levelIndex + 1);
 
-  helicopter.y        = 308;
+  helicopter.y        = IS_MOBILE_FLIGHT_PORTRAIT ? WORLD_HEIGHT * 0.46 : 308;
   helicopter.velocityY = 0;
   helicopter.rotor    = 0;
   helicopter.thrusting = false;
@@ -1039,7 +1054,7 @@ function resetGame(fullReset = true) {
   gameState.score          = 0;
   gameState.displayedScore = 0;
   gameState.distance       = 0;
-  gameState.speed          = levelDef.baseSpeed || 115;
+  gameState.speed          = (levelDef.baseSpeed || 115) * MOBILE_FLIGHT_SPEED_SCALE;
   gameState.justSubmitted  = false;
   gameState.pausedByBlur   = false;
   cavePauseOverlay?.classList.add("hidden");

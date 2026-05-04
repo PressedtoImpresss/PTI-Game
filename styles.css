@@ -7666,3 +7666,140 @@ tbody tr.raffle {
     margin-top: 12px !important;
   }
 }
+
+/* Ink Flight Rush phone portrait: use a vertical, full-screen game frame only on mobile. */
+@media (max-width: 700px) and (orientation: portrait) {
+  html.cave-flight-doc,
+  html.cave-flight-doc body,
+  body.cave-flight-page {
+    width: 100% !important;
+    height: 100svh !important;
+    height: 100dvh !important;
+    min-height: 100svh !important;
+    min-height: 100dvh !important;
+    overflow: hidden !important;
+    touch-action: manipulation !important;
+    background: #04181c !important;
+  }
+
+  body.cave-flight-page .app-shell.cave-flight-shell,
+  body.cave-flight-page .hero-panel.cave-flight-hero,
+  body.cave-flight-page .cave-flight-game-card,
+  body.cave-flight-page .game-frame.cave-flight-frame {
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100svh !important;
+    height: 100dvh !important;
+    min-height: 100svh !important;
+    min-height: 100dvh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+  }
+
+  body.cave-flight-page .hero-panel.cave-flight-hero {
+    display: block !important;
+    background: #04181c !important;
+  }
+
+  body.cave-flight-page .hero-copy.game_info_card,
+  body.cave-flight-page .board-panel.cave-flight-board {
+    display: none !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame {
+    position: relative !important;
+    background:
+      linear-gradient(180deg, rgba(4, 34, 38, 0.98), rgba(1, 15, 18, 0.99)) !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame::before,
+  body.cave-flight-page .game-frame.cave-flight-frame::after {
+    display: none !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame canvas {
+    display: block !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100svh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    object-fit: fill !important;
+    touch-action: none !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .hud-strip {
+    position: absolute !important;
+    left: max(8px, env(safe-area-inset-left)) !important;
+    right: max(8px, env(safe-area-inset-right)) !important;
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    min-height: 52px !important;
+    height: 52px !important;
+    padding: 5px 6px !important;
+    border-radius: 16px !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .hud-pill {
+    min-width: 0 !important;
+    padding: 5px 4px !important;
+    border-radius: 11px !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .hud-pill span {
+    font-size: 0.48rem !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .hud-pill strong {
+    font-size: 0.82rem !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .pause-btn-pill {
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-fire-btn {
+    top: auto !important;
+    right: max(12px, env(safe-area-inset-right)) !important;
+    bottom: calc(max(8px, env(safe-area-inset-bottom)) + 66px) !important;
+    width: 76px !important;
+    height: 44px !important;
+    border-radius: 999px !important;
+    font-size: 0.78rem !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-brand-logo {
+    top: max(58px, calc(env(safe-area-inset-top) + 46px)) !important;
+    right: max(12px, env(safe-area-inset-right)) !important;
+    width: 30px !important;
+    height: 30px !important;
+    opacity: 0.72 !important;
+  }
+
+  body.cave-flight-page .cave-level-select-overlay,
+  body.cave-flight-page .start-overlay,
+  body.cave-flight-page .game-over-overlay,
+  body.cave-flight-page .level-gate-overlay,
+  body.cave-flight-page .cave-pause-overlay {
+    position: absolute !important;
+    inset: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  body.cave-flight-page .cave-level-select-panel,
+  body.cave-flight-page .overlay-card,
+  body.cave-flight-page .cave-pause-menu {
+    width: min(360px, calc(100vw - 24px)) !important;
+    max-height: calc(100dvh - 24px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
