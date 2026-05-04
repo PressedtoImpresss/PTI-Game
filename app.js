@@ -67,17 +67,17 @@ ptiLogoImg.onload        = () => { ptiLogoReady = true; };
 ptiLogoImg.src           = './pti-logo.png';
 const HELICOPTER_ASSET_BASE = "./Assets/slingshot/helicopter/";
 const helicopterAssets = {
-  background1:   loadHelicopterAsset("background1.png"),
-  background2:   loadHelicopterAsset("background2.png"),
-  background3:   loadHelicopterAsset("background3.png"),
-  background4:   loadHelicopterAsset("background4.png"),
-  background5:   loadHelicopterAsset("background5.png"),
-  background6:   loadHelicopterAsset("background6.png"),
-  background7:   loadHelicopterAsset("background7.png"),
-  background8:   loadHelicopterAsset("background8.png"),
-  background9:   loadHelicopterAsset("background9.png"),
-  background10:  loadHelicopterAsset("background10.png"),
-  background11:  loadHelicopterAsset("background11.png"),
+  background1:   loadHelicopterAsset("background1.png", { eager: false }),
+  background2:   loadHelicopterAsset("background2.png", { eager: false }),
+  background3:   loadHelicopterAsset("background3.png", { eager: false }),
+  background4:   loadHelicopterAsset("background4.png", { eager: false }),
+  background5:   loadHelicopterAsset("background5.png", { eager: false }),
+  background6:   loadHelicopterAsset("background6.png", { eager: false }),
+  background7:   loadHelicopterAsset("background7.png", { eager: false }),
+  background8:   loadHelicopterAsset("background8.png", { eager: false }),
+  background9:   loadHelicopterAsset("background9.png", { eager: false }),
+  background10:  loadHelicopterAsset("background10.png", { eager: false }),
+  background11:  loadHelicopterAsset("background11.png", { eager: false }),
   drone:        loadHelicopterAsset("drone.png"),
   dtfRoll:      loadHelicopterAsset("dtf-roll.png"),
   glowingBeam:  loadHelicopterAsset("glowing-beam.png"),
@@ -135,11 +135,22 @@ const cavePauseArcade    = document.getElementById("cave-pause-arcade");
 const cavePauseSound     = document.getElementById("cave-pause-sound");
 let caveSoundMuted       = localStorage.getItem(`${STORAGE_PREFIX}:muted`) === "1";
 
-function loadHelicopterAsset(fileName) {
+function loadHelicopterAsset(fileName, options = {}) {
   const img = new Image();
   img.ready = false;
-  img.onload = () => { img.ready = true; };
-  img.src = `${HELICOPTER_ASSET_BASE}${fileName}`;
+  img.loadStarted = false;
+  img.onload = () => {
+    img.ready = true;
+  };
+  img.onerror = () => {
+    console.warn(`Could not load ${HELICOPTER_ASSET_BASE}${fileName}`);
+  };
+  img.ensureLoaded = () => {
+    if (img.loadStarted) return;
+    img.loadStarted = true;
+    img.src = `${HELICOPTER_ASSET_BASE}${fileName}`;
+  };
+  if (options.eager !== false) img.ensureLoaded();
   return img;
 }
 
@@ -1558,7 +1569,12 @@ function getCaveBackgroundImage() {
     helicopterAssets.background10,
     helicopterAssets.background11,
   ];
-  return backgrounds[gameState.levelIndex % backgrounds.length];
+  const index = gameState.levelIndex % backgrounds.length;
+  const active = backgrounds[index];
+  const next = backgrounds[(index + 1) % backgrounds.length];
+  active?.ensureLoaded?.();
+  next?.ensureLoaded?.();
+  return active;
 }
 
 function drawCoverImage(img, dx, dy, dw, dh, offsetX = 0.5, offsetY = 0.5) {

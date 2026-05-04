@@ -7803,3 +7803,43 @@ tbody tr.raffle {
     -webkit-overflow-scrolling: touch;
   }
 }
+/* Mobile QA polish: larger tap targets and lighter level-select hitbox alignment. */
+@media (max-width: 640px) {
+  .game-select-back {
+    min-height: 48px !important;
+    padding: 0 18px !important;
+  }
+
+  .level-select-grid {
+    left: 18% !important;
+    width: 64% !important;
+    gap: 6px !important;
+  }
+
+  .level-card {
+    border-radius: 14px;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-level-back,
+  .cave-flight-page .cave-level-back {
+    min-height: 48px !important;
+    padding: 0 18px !important;
+  }
+
+  body:not(.cave-flight-page) #pause-btn.pause-btn-pill {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+  }
+
+  body.cave-flight-page .game-frame.cave-flight-frame .cave-level-button,
+  .cave-flight-page .cave-level-button {
+    min-height: 52px !important;
+  }
+
+  body.cave-flight-page .cave-pause-button,
+  .cave-flight-page .cave-pause-button {
+    min-height: 48px !important;
+  }
+}

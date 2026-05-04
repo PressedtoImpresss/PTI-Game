@@ -513,6 +513,7 @@ const SLING_LEVEL_LAYOUTS = [
 ];
 
 const assets = {};
+const assetLoadPromises = new Map();
 const levels = [
   { ...SLING_LEVEL_LAYOUTS[0], projectile: "ink", strength: 1, tower: "structured", platformPattern: "starter" },
   { ...SLING_LEVEL_LAYOUTS[1], projectile: "paint", strength: 1.08, tower: "structured", platformPattern: "wideRight" },
@@ -1100,9 +1101,20 @@ function updateProjectileIndicator() {
   });
 }
 
-function loadAssets() {
-  const entries = Object.entries(assetPaths);
-  return Promise.all(entries.map(([key, path]) => new Promise((resolve) => {
+function isDeferredAssetKey(key) {
+  return /^backgroundLevel\d+$/i.test(key);
+}
+
+function resolveAssetPath(path) {
+  return path.startsWith("./") || path.startsWith("/") ? path : ASSET_ROOT + path;
+}
+
+function loadAssetByKey(key) {
+  if (assets[key]) return Promise.resolve(assets[key]);
+  if (assetLoadPromises.has(key)) return assetLoadPromises.get(key);
+  const path = assetPaths[key];
+  if (!path) return Promise.resolve(null);
+  const promise = new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
       try {
@@ -1117,8 +1129,26 @@ function loadAssets() {
       console.warn(`Could not load ${path}`);
       resolve();
     };
-    img.src = path.startsWith("./") || path.startsWith("/") ? path : ASSET_ROOT + path;
-  })));
+    img.src = resolveAssetPath(path);
+  });
+  assetLoadPromises.set(key, promise);
+  return promise;
+}
+
+function backgroundKeyForLevel(levelNumber) {
+  return levelNumber >= 2 && levelNumber <= 25
+    ? `backgroundLevel${String(levelNumber).padStart(2, "0")}`
+    : "background";
+}
+
+function requestLevelBackground(levelNumber) {
+  const key = backgroundKeyForLevel(levelNumber);
+  if (key !== "background") loadAssetByKey(key);
+}
+
+function loadAssets() {
+  const entries = Object.keys(assetPaths).filter((key) => !isDeferredAssetKey(key));
+  return Promise.all(entries.map(loadAssetByKey));
 }
 
 function setupCanvasSize() {
@@ -1169,6 +1199,8 @@ function createWorld() {
 
 function resetLevel(keepScore = false) {
   if (!engine) createWorld();
+  requestLevelBackground(state.levelIndex + 1);
+  requestLevelBackground(state.levelIndex + 2);
   World.clear(world, false);
   Engine.clear(engine);
   bodies = [];
@@ -3854,9 +3886,8 @@ function drawCover(img, x, y, w, h) {
 
 function drawBackgroundCover(x, y, w, h) {
   const levelNumber = state.levelIndex + 1;
-  const levelKey = levelNumber >= 2 && levelNumber <= 25
-    ? `backgroundLevel${String(levelNumber).padStart(2, "0")}`
-    : "background";
+  const levelKey = backgroundKeyForLevel(levelNumber);
+  if (levelKey !== "background" && !assets[levelKey]) loadAssetByKey(levelKey);
   const background = assets[levelKey] || assets.background;
   if (levelKey !== "background") {
     drawCover(background, x, y, w, h);
