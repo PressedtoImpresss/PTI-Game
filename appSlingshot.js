@@ -204,6 +204,7 @@ const selectDeliveryGame = document.getElementById("select-delivery-game");
 const levelSelectOverlay = document.getElementById("level-select-overlay");
 const levelSelectGrid = document.getElementById("level-select-grid");
 const levelBackButton = document.getElementById("level-back-button");
+const slingOrientationOverlay = document.getElementById("sling-orientation-overlay");
 const gameOverOverlay = document.getElementById("game-over-overlay");
 const levelGateOverlay = document.getElementById("level-gate-overlay");
 const startButton = document.getElementById("start-button");
@@ -581,6 +582,41 @@ function syncArcadeShellMode() {
   }
 }
 
+function isTouchPhoneViewport() {
+  const coarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches || false;
+  return (coarsePointer || navigator.maxTouchPoints > 0) && Math.min(window.innerWidth, window.innerHeight) <= 700;
+}
+
+function shouldLockSlingshotForPortrait() {
+  if (!isTouchPhoneViewport()) return false;
+  if (window.innerWidth >= window.innerHeight) return false;
+  return state.status === "select" || state.status === "running";
+}
+
+function updateSlingshotOrientationGate() {
+  const locked = shouldLockSlingshotForPortrait();
+  slingOrientationOverlay?.classList.toggle("hidden", !locked);
+  document.body.classList.toggle("sling-orientation-locked", locked);
+  document.documentElement.classList.toggle("sling-orientation-locked", locked);
+
+  if (locked && state.status === "running") {
+    cancelDrag();
+    if (!state.paused) {
+      state.paused = true;
+      orientationPauseLock = true;
+    }
+    pausePanel.classList.add("hidden");
+  } else if (!locked && orientationPauseLock) {
+    if (state.status === "running") {
+      state.paused = false;
+      lastFrame = performance.now();
+    }
+    orientationPauseLock = false;
+  } else if (!locked) {
+    orientationPauseLock = false;
+  }
+}
+
 let engine = null;
 let world = null;
 let layoutSettling = false;
@@ -626,6 +662,7 @@ let audioMuted = localStorage.getItem(`${STORAGE_PREFIX}:sound-muted`) === "1";
 let lastImpactSoundAt = 0;
 let lastPullSoundAt = 0;
 let levelHintTimer = 0;
+let orientationPauseLock = false;
 
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
@@ -1057,6 +1094,7 @@ function updateHud() {
       && launchRealAge >= BURST_AVAILABLE_DELAY
       && shotAbilityUsesThisShot < BURST_MAX_USES_PER_SHOT)
   );
+  updateSlingshotOrientationGate();
 }
 
 function shotTypeForHud() {
@@ -4764,6 +4802,7 @@ function frame(now) {
     const changed = Math.abs(cssW - oldW) > 3 || Math.abs(cssH - oldH) > 3;
     if (state.status === "running" && changed && !state.hasLaunched) resetLevel(true);
   }
+  updateSlingshotOrientationGate();
   update(delta);
   render(delta);
   requestAnimationFrame(frame);
