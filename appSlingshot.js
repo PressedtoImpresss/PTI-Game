@@ -1229,16 +1229,27 @@ function setupCanvasSize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   cssW = Math.max(320, rect.width || 960);
   cssH = Math.max(landscapePhone ? 260 : 320, rect.height || 540);
-  const mobileWorldScale = mobile ? 1.82 : 1.55;
+  const mobileWorldScale = landscapePhone ? 1 : (mobile ? 1.45 : 1.55);
   worldW = Math.max(cssW, cssW * mobileWorldScale);
   canvas.width = Math.round(cssW * dpr);
   canvas.height = Math.round(cssH * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   groundY = cssH * 0.86;
-  const anchorXRatio = mobile ? 0.24 : 0.28;
-  anchor = { x: cssW * anchorXRatio, y: groundY - clamp(cssH * 0.095, 42, 64) };
-  cameraX = clamp(cameraX, 0, Math.max(0, worldW - cssW));
-  cameraTargetX = clamp(cameraTargetX, 0, Math.max(0, worldW - cssW));
+  const anchorXRatio = landscapePhone ? 0.17 : (mobile ? 0.24 : 0.28);
+  const anchorLift = landscapePhone ? clamp(cssH * 0.08, 24, 42) : clamp(cssH * 0.095, 42, 64);
+  anchor = { x: cssW * anchorXRatio, y: groundY - anchorLift };
+  if (landscapePhone) {
+    cameraX = 0;
+    cameraTargetX = 0;
+  } else {
+    cameraX = clamp(cameraX, 0, Math.max(0, worldW - cssW));
+    cameraTargetX = clamp(cameraTargetX, 0, Math.max(0, worldW - cssW));
+  }
+}
+
+function slingshotMobileScale() {
+  if (!isPhoneLandscapeViewport()) return clamp(cssW / 960, 0.72, 1.25);
+  return clamp(Math.min(cssW / 960, cssH / 540) * 0.98, 0.58, 0.72);
 }
 
 function createWorld() {
@@ -1789,8 +1800,9 @@ function buildStructuredLevel(level, baseX, baseY, s) {
 
 function buildTower() {
   const level = levels[state.levelIndex];
-  const baseX = worldW - cssW * (cssW < 560 ? 0.37 : 0.41);
-  const s = clamp(cssW / 960, 0.72, 1.25);
+  const fittedPhone = isPhoneLandscapeViewport();
+  const baseX = fittedPhone ? cssW * 0.72 : worldW - cssW * (cssW < 560 ? 0.37 : 0.41);
+  const s = slingshotMobileScale();
   const platformDrop = PLATFORM_VERTICAL_OFFSET * s;
   const baseY = groundY - 28 * s + platformDrop;
   const beamW = 132 * s;
@@ -2822,7 +2834,9 @@ function getProjectileTypeForSlot(slotFromNow) {
 }
 
 function projectileMetrics(type) {
-  const base = clamp(cssW / 960, 0.76, 1.16);
+  const base = isPhoneLandscapeViewport()
+    ? clamp(Math.min(cssW / 960, cssH / 540), 0.62, 0.76)
+    : clamp(cssW / 960, 0.76, 1.16);
   const resolvedType = PROJECTILE_TYPES[type] ? type : (LEGACY_PROJECTILE_TYPE_MAP[type] || "standard");
   const config = PROJECTILE_TYPES[resolvedType];
   return {
@@ -2850,7 +2864,10 @@ function projectileMetrics(type) {
 }
 
 function groundQueuePosition(index) {
-  const size = clamp(cssW / 960, 0.76, 1.16) * 42;
+  const scale = isPhoneLandscapeViewport()
+    ? clamp(Math.min(cssW / 960, cssH / 540), 0.62, 0.76)
+    : clamp(cssW / 960, 0.76, 1.16);
+  const size = scale * 42;
   return {
     x: anchor.x - size * 2.65 - index * size * 0.82,
     y: groundY - size * 0.42,
@@ -3657,6 +3674,12 @@ function onPointerDown(event) {
 
   if (!launchedProjectile) {
     event.preventDefault();
+    if (isPhoneLandscapeViewport() || worldW <= cssW + 8) {
+      panning = false;
+      cameraX = 0;
+      cameraTargetX = 0;
+      return;
+    }
     panning = true;
     panStartPointerX = rawScreenX(event);
     panStartCameraX = cameraX;
@@ -3668,6 +3691,12 @@ function onPointerDown(event) {
 function onPointerMove(event) {
   if (panning) {
     event.preventDefault();
+    if (isPhoneLandscapeViewport() || worldW <= cssW + 8) {
+      panning = false;
+      cameraX = 0;
+      cameraTargetX = 0;
+      return;
+    }
     const screenX = rawScreenX(event);
     const deltaX = screenX - panStartPointerX;
     cameraX = clamp(panStartCameraX - deltaX, 0, Math.max(0, worldW - cssW));
@@ -3679,7 +3708,7 @@ function onPointerMove(event) {
   event.preventDefault();
   pointer = screenPoint(event);
   const pull = Vector.sub(pointer, anchor);
-  const isMobileCanvas = cssW <= 640;
+  const isMobileCanvas = cssW <= 640 || isPhoneLandscapeViewport();
   const maxPull = isMobileCanvas ? clamp(cssH * 0.09, 66, 78) : clamp(cssW * 0.095, 58, 92);
   const length = Vector.magnitude(pull);
   const limited = length > maxPull ? Vector.mult(Vector.normalise(pull), maxPull) : pull;
@@ -3850,6 +3879,15 @@ function update(delta) {
     cssH,
     worldW,
     platforms: platforms.map((p) => ({ x: p.x, y: p.y, w: p.w, h: p.h, asset: p.asset })),
+    targets: targets.map((t) => ({
+      x: t.position.x,
+      y: t.position.y,
+      w: t.plugin?.w || 0,
+      h: t.plugin?.h || 0,
+      scored: Boolean(t.plugin?.scored),
+      required: Boolean(t.plugin?.requiredTarget),
+      asset: t.plugin?.asset || null,
+    })),
     shotAbilityUsed,
     shotAbilityUsesThisShot,
     burstReady: Boolean(launchedProjectile && launchRealAge >= BURST_AVAILABLE_DELAY && shotAbilityUsesThisShot < BURST_MAX_USES_PER_SHOT),
@@ -4017,7 +4055,9 @@ function rotatedLocalPoint(geom, local) {
 }
 
 function slingshotGeometry() {
-  const size = clamp(cssW * 0.15, 92, 142);
+  const size = isPhoneLandscapeViewport()
+    ? clamp(cssH * 0.25, 70, 94)
+    : clamp(cssW * 0.15, 92, 142);
   const w = size * 0.92;
   const h = size * 1.34;
   const angle = SLINGSHOT_ROTATION;
