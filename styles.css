@@ -7908,6 +7908,205 @@ tbody tr.raffle {
     min-width: 48px !important;
     min-height: 48px !important;
   }
+
+  body:not(.cave-flight-page) .start-overlay,
+  body:not(.cave-flight-page) .game-select-overlay,
+  body:not(.cave-flight-page) .level-select-overlay,
+  body:not(.cave-flight-page) .game-over-overlay,
+  body:not(.cave-flight-page) .level-gate-overlay {
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+    border-radius: 0 !important;
+  }
+
+  body:not(.cave-flight-page) .level-select-bg {
+    object-fit: fill !important;
+  }
+
+  body:not(.cave-flight-page) .level-select-grid {
+    left: 25.4% !important;
+    top: 20.8% !important;
+    width: 45.2% !important;
+    height: 72.6% !important;
+    gap: 5px 8px !important;
+  }
+
+  body:not(.cave-flight-page) .level-card strong {
+    font-size: clamp(1.05rem, 4.2vw, 1.55rem) !important;
+  }
+
+  body:not(.cave-flight-page) .level-lock {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  body:not(.cave-flight-page) .level-gate-overlay,
+  body:not(.cave-flight-page) .game-over-overlay {
+    align-items: center !important;
+    justify-items: center !important;
+    padding: 7px max(8px, env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
+  }
+
+  body:not(.cave-flight-page) .level_complete_panel,
+  body:not(.cave-flight-page) .run_result_panel {
+    width: min(660px, calc(100vw - 22px)) !important;
+    max-height: calc(100svh - 14px) !important;
+    max-height: calc(100dvh - 14px) !important;
+    padding: 9px 12px 10px !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+  }
+
+  body:not(.cave-flight-page) .level_complete_panel .gate-badge-wrap,
+  body:not(.cave-flight-page) .failed_badge {
+    width: 32px !important;
+    height: 32px !important;
+    margin-bottom: 3px !important;
+    font-size: 20px !important;
+  }
+
+  body:not(.cave-flight-page) .level_complete_panel .gate-badge-logo {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  body:not(.cave-flight-page) .complete_eyebrow,
+  body:not(.cave-flight-page) .run_result_panel .failed_eyebrow {
+    font-size: 9px !important;
+    letter-spacing: 0.8px !important;
+  }
+
+  body:not(.cave-flight-page) .level_complete_panel h2,
+  body:not(.cave-flight-page) .run_result_panel h2 {
+    margin: 2px 0 5px !important;
+    font-size: clamp(1.35rem, 5.7vw, 2rem) !important;
+    line-height: 0.9 !important;
+  }
+
+  body:not(.cave-flight-page) .complete_score,
+  body:not(.cave-flight-page) .failed_score {
+    margin: 5px 0 !important;
+    padding: 6px 10px !important;
+    border-radius: 12px !important;
+  }
+
+  body:not(.cave-flight-page) .complete_score span,
+  body:not(.cave-flight-page) .complete_bonus_grid span,
+  body:not(.cave-flight-page) .failed_score span,
+  body:not(.cave-flight-page) .result_prize_summary span,
+  body:not(.cave-flight-page) .failed_stats span {
+    font-size: 8px !important;
+    letter-spacing: 0.7px !important;
+  }
+
+  body:not(.cave-flight-page) .complete_score strong,
+  body:not(.cave-flight-page) .failed_score strong {
+    font-size: 1.25rem !important;
+  }
+
+  body:not(.cave-flight-page) .complete_bonus_grid,
+  body:not(.cave-flight-page) .result_prize_summary,
+  body:not(.cave-flight-page) .failed_stats {
+    gap: 6px !important;
+    margin: 5px 0 !important;
+  }
+
+  body:not(.cave-flight-page) .complete_bonus_grid > div,
+  body:not(.cave-flight-page) .result_prize_summary div,
+  body:not(.cave-flight-page) .failed_stats div {
+    padding: 5px 7px !important;
+    border-radius: 10px !important;
+  }
+
+  body:not(.cave-flight-page) .complete_bonus_grid strong,
+  body:not(.cave-flight-page) .result_prize_summary strong,
+  body:not(.cave-flight-page) .failed_stats strong {
+    font-size: 0.9rem !important;
+  }
+
+  body:not(.cave-flight-page) .next_level_card {
+    margin: 5px 0 !important;
+    padding: 7px 10px !important;
+    border-radius: 11px !important;
+  }
+
+  body:not(.cave-flight-page) .next_level_card small {
+    font-size: 8px !important;
+  }
+
+  body:not(.cave-flight-page) .next_level_card #gate-next-name {
+    margin-top: 1px !important;
+    font-size: 0.95rem !important;
+  }
+
+  body:not(.cave-flight-page) .next_level_card p,
+  body:not(.cave-flight-page) .result_rank_message {
+    display: none !important;
+  }
+
+  body:not(.cave-flight-page) .run_result_panel .failed_message {
+    margin: 5px 0 !important;
+    font-size: 0.74rem !important;
+    line-height: 1.12 !important;
+  }
+
+  body:not(.cave-flight-page) .complete_actions,
+  body:not(.cave-flight-page) .failed_actions,
+  body:not(.cave-flight-page) .run_result_panel .form-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    margin-top: 6px !important;
+  }
+
+  body:not(.cave-flight-page) .complete_button.primary,
+  body:not(.cave-flight-page) .failed_button.primary {
+    grid-column: auto !important;
+  }
+
+  body:not(.cave-flight-page) .complete_button,
+  body:not(.cave-flight-page) .failed_button {
+    min-height: 34px !important;
+    padding: 5px 8px !important;
+    border-radius: 11px !important;
+    font-size: 0.76rem !important;
+    line-height: 1.05 !important;
+  }
+
+  body:not(.cave-flight-page) .result_score_form {
+    margin-top: 6px !important;
+  }
+
+  body:not(.cave-flight-page) .result_score_form label {
+    margin-bottom: 5px !important;
+  }
+
+  body:not(.cave-flight-page) .result_score_form span {
+    margin-bottom: 3px !important;
+    font-size: 8px !important;
+  }
+
+  body:not(.cave-flight-page) .result_score_form input {
+    min-height: 30px !important;
+    padding: 6px 9px !important;
+    border-radius: 10px !important;
+  }
+}
+
+html.sling-orientation-locked,
+body.sling-orientation-locked {
+  overflow: hidden !important;
+}
+
+html.sling-orientation-locked .sling-orientation-overlay:not(.hidden),
+body.sling-orientation-locked .sling-orientation-overlay:not(.hidden) {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex !important;
 }
 
 .sling-orientation-overlay {
@@ -8001,4 +8200,210 @@ tbody tr.raffle {
   border-radius: 50%;
   background: #fff;
   transform: translateY(-50%);
+}
+
+/* Slingshot phone landscape polish: compact menus and protect the playfield. */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 700px) {
+  body:not(.cave-flight-page) .app-shell,
+  body:not(.cave-flight-page) .hero-panel,
+  body:not(.cave-flight-page) .game-card,
+  body:not(.cave-flight-page) .game-frame {
+    width: 100vw !important;
+    height: 100svh !important;
+    height: 100dvh !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body:not(.cave-flight-page) .game-frame canvas {
+    width: 100vw !important;
+    height: calc(100svh - 42px) !important;
+    height: calc(100dvh - 42px) !important;
+  }
+
+  body:not(.cave-flight-page) .hud-strip {
+    height: 42px !important;
+    padding: 3px max(6px, env(safe-area-inset-right)) calc(3px + env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left)) !important;
+    gap: 5px !important;
+    border-radius: 0 !important;
+  }
+
+  body:not(.cave-flight-page) .hud-pill {
+    width: auto !important;
+    min-width: 58px !important;
+    min-height: 32px !important;
+    padding: 3px 6px !important;
+    border-radius: 9px !important;
+  }
+
+  body:not(.cave-flight-page) .hud-pill span {
+    font-size: 0.42rem !important;
+    letter-spacing: 0.07em !important;
+  }
+
+  body:not(.cave-flight-page) .hud-pill strong {
+    margin-top: 0 !important;
+    font-size: 0.76rem !important;
+    line-height: 1 !important;
+  }
+
+  body:not(.cave-flight-page) #pause-btn.pause-btn-pill {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    border-radius: 12px !important;
+  }
+
+  body:not(.cave-flight-page) #pause-btn.pause-btn-pill .pause-icon,
+  body:not(.cave-flight-page) #pause-btn.pause-btn-pill svg {
+    width: 16px !important;
+    height: 18px !important;
+  }
+
+  body:not(.cave-flight-page) .projectile-indicator {
+    top: max(5px, env(safe-area-inset-top)) !important;
+    left: max(5px, env(safe-area-inset-left)) !important;
+    right: auto !important;
+    width: min(178px, 24vw) !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 5px !important;
+    padding: 5px !important;
+    border-radius: 12px !important;
+  }
+
+  body:not(.cave-flight-page) .projectile-kicker,
+  body:not(.cave-flight-page) .projectile-next span {
+    font-size: 0.44rem !important;
+    letter-spacing: 0.07em !important;
+  }
+
+  body:not(.cave-flight-page) .projectile-current strong,
+  body:not(.cave-flight-page) .projectile-next strong {
+    margin-top: 1px !important;
+    font-size: 0.78rem !important;
+    line-height: 0.95 !important;
+  }
+
+  body:not(.cave-flight-page) .projectile-current small,
+  body:not(.cave-flight-page) .projectile-order {
+    display: none !important;
+  }
+
+  body:not(.cave-flight-page) .projectile-next {
+    min-width: 48px !important;
+    padding: 4px 5px !important;
+    border-radius: 9px !important;
+  }
+
+  body:not(.cave-flight-page) .targets-left {
+    top: max(5px, env(safe-area-inset-top)) !important;
+    right: max(7px, env(safe-area-inset-right)) !important;
+    min-height: 30px !important;
+    padding: 6px 12px !important;
+    border-radius: 11px !important;
+    font-size: 0.74rem !important;
+  }
+
+  body:not(.cave-flight-page) .level-select-overlay {
+    background:
+      radial-gradient(circle at 50% 8%, rgba(92, 255, 98, 0.18), transparent 34%),
+      linear-gradient(180deg, rgba(4, 36, 34, 0.98), rgba(1, 14, 17, 0.99)) !important;
+  }
+
+  body:not(.cave-flight-page) .level-select-bg {
+    opacity: 0.26 !important;
+    filter: saturate(0.92) brightness(0.72) blur(1px) !important;
+    object-fit: cover !important;
+  }
+
+  body:not(.cave-flight-page) .level-select-overlay::before {
+    content: "CHOOSE LEVEL";
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    top: max(7px, env(safe-area-inset-top));
+    transform: translateX(-50%);
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 7vh, 2rem);
+    font-weight: 1000;
+    line-height: 0.9;
+    text-transform: uppercase;
+    text-shadow: 0 3px 0 rgba(0, 0, 0, 0.64), 0 0 16px rgba(91, 255, 118, 0.25);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  body:not(.cave-flight-page) .level-select-overlay::after {
+    content: "Complete levels to unlock more";
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    top: calc(max(7px, env(safe-area-inset-top)) + 32px);
+    transform: translateX(-50%);
+    color: #bfffd0;
+    font-size: clamp(0.62rem, 2.5vh, 0.82rem);
+    font-weight: 900;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  body:not(.cave-flight-page) .level-back-btn-hot {
+    left: max(8px, env(safe-area-inset-left)) !important;
+    top: max(7px, env(safe-area-inset-top)) !important;
+    width: 64px !important;
+    height: 32px !important;
+    min-width: 0 !important;
+    border-radius: 999px !important;
+    background: linear-gradient(180deg, #ffbd45, #ff7b00) !important;
+    border: 2px solid rgba(255, 233, 151, 0.95) !important;
+    box-shadow: 0 4px 0 #9d4200, 0 0 16px rgba(255, 138, 0, 0.35) !important;
+  }
+
+  body:not(.cave-flight-page) .level-back-btn-hot::before {
+    content: "Back";
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 1000;
+    text-shadow: 0 2px 0 rgba(0, 0, 0, 0.38);
+  }
+
+  body:not(.cave-flight-page) .level-select-grid {
+    z-index: 2 !important;
+    left: 50% !important;
+    top: max(56px, calc(env(safe-area-inset-top) + 50px)) !important;
+    width: min(570px, calc(100vw - 118px)) !important;
+    height: calc(100% - max(66px, calc(env(safe-area-inset-top) + 60px)) - max(8px, env(safe-area-inset-bottom))) !important;
+    transform: translateX(-50%) !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 5px 7px !important;
+    padding: 0 !important;
+  }
+
+  body:not(.cave-flight-page) .level-card {
+    min-height: 0 !important;
+    border-radius: 10px !important;
+    border-width: 1.5px !important;
+  }
+
+  body:not(.cave-flight-page) .level-card::before {
+    inset: 3px !important;
+    border-radius: 7px !important;
+  }
+
+  body:not(.cave-flight-page) .level-card strong {
+    font-size: clamp(1rem, 5.2vh, 1.42rem) !important;
+    line-height: 0.85 !important;
+  }
+
+  body:not(.cave-flight-page) .level-lock {
+    width: clamp(11px, 3.2vh, 14px) !important;
+    height: clamp(11px, 3.2vh, 14px) !important;
+  }
 }

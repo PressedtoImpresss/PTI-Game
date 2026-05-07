@@ -587,10 +587,26 @@ function isTouchPhoneViewport() {
   return (coarsePointer || navigator.maxTouchPoints > 0) && Math.min(window.innerWidth, window.innerHeight) <= 700;
 }
 
+function isPhoneLandscapeViewport() {
+  return isTouchPhoneViewport() && window.innerWidth > window.innerHeight;
+}
+
+function requestSlingshotFullscreen() {
+  if (!isPhoneLandscapeViewport() || document.fullscreenElement) return;
+  const target = document.documentElement;
+  const request = target.requestFullscreen || target.webkitRequestFullscreen || target.msRequestFullscreen;
+  try {
+    const result = request?.call(target, { navigationUI: "hide" });
+    if (result?.catch) result.catch(() => {});
+  } catch (_) {
+    // Mobile in-app browsers often block fullscreen; gameplay still fits the visible viewport.
+  }
+}
+
 function shouldLockSlingshotForPortrait() {
   if (!isTouchPhoneViewport()) return false;
   if (window.innerWidth >= window.innerHeight) return false;
-  return state.status === "select" || state.status === "running";
+  return ["select", "running", "level", "over"].includes(state.status);
 }
 
 function updateSlingshotOrientationGate() {
@@ -1193,10 +1209,10 @@ function setupCanvasSize() {
   const root = document.documentElement;
   const coarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches || navigator.maxTouchPoints > 0;
   const mobile = window.innerWidth <= 640 || (coarsePointer && Math.min(window.innerWidth, window.innerHeight) <= 640);
+  const landscapePhone = mobile && window.innerWidth > window.innerHeight;
   if (mobile) {
     const hudH = document.querySelector(".hud-strip")?.offsetHeight || 58;
-    const landscapePhone = window.innerWidth > window.innerHeight;
-    const minCanvasHeight = landscapePhone ? 300 : 420;
+    const minCanvasHeight = landscapePhone ? 220 : 420;
     const targetHeight = Math.max(minCanvasHeight, window.innerHeight - hudH);
     canvas.style.width = window.innerWidth + "px";
     canvas.style.height = targetHeight + "px";
@@ -1212,7 +1228,7 @@ function setupCanvasSize() {
   const rect = canvas.getBoundingClientRect();
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   cssW = Math.max(320, rect.width || 960);
-  cssH = Math.max(320, rect.height || 540);
+  cssH = Math.max(landscapePhone ? 260 : 320, rect.height || 540);
   const mobileWorldScale = mobile ? 1.82 : 1.55;
   worldW = Math.max(cssW, cssW * mobileWorldScale);
   canvas.width = Math.round(cssW * dpr);
@@ -2888,6 +2904,7 @@ function keepProjectileAwake(body) {
 
 function startGame(options = {}) {
   if (!Matter) return;
+  requestSlingshotFullscreen();
   ensureAudio();
   playSound("start");
   state.status = "running";
@@ -2910,6 +2927,7 @@ function startGame(options = {}) {
 }
 
 function startNextLevel() {
+  requestSlingshotFullscreen();
   ensureAudio();
   const nextLevelIndex = Math.min(levels.length - 1, state.levelIndex + 1);
   saveLevelCheckpoint(nextLevelIndex);
@@ -2923,6 +2941,7 @@ function startNextLevel() {
 
 function restartCurrentLevel() {
   if (!Matter) return;
+  requestSlingshotFullscreen();
   ensureAudio();
   playSound("start");
   state.status = "running";
@@ -4702,6 +4721,7 @@ function drawScorePopups() {
 
 function drawGameplayHint() {
   if (state.status !== "running" || levelHintTimer <= 0 || dragging) return;
+  if (isPhoneLandscapeViewport()) return;
   const hints = [
     "Tip: Bonus objects give extra points.",
     "Tip: Break bonus objects for extra score. Projectiles hit differently.",
@@ -4768,10 +4788,21 @@ function render(delta = 0) {
   ctx.save();
   const shakeX = screenShake > 0 ? (Math.random() - 0.5) * screenShake * 18 : 0;
   const shakeY = screenShake > 0 ? (Math.random() - 0.5) * screenShake * 10 : 0;
+  const fixedMobileBackground = isPhoneLandscapeViewport();
+  if (fixedMobileBackground) {
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+    drawBackgroundCover(0, 0, cssW, cssH);
+    ctx.fillStyle = "rgba(0,0,0,0.03)";
+    ctx.fillRect(0, 0, cssW, cssH);
+    ctx.restore();
+  }
   ctx.translate(-cameraX + shakeX, shakeY);
-  drawBackgroundCover(0, 0, worldW, cssH);
-  ctx.fillStyle = "rgba(0,0,0,0.05)";
-  ctx.fillRect(0, 0, worldW, cssH);
+  if (!fixedMobileBackground) {
+    drawBackgroundCover(0, 0, worldW, cssH);
+    ctx.fillStyle = "rgba(0,0,0,0.05)";
+    ctx.fillRect(0, 0, worldW, cssH);
+  }
   drawPlatforms();
   drawProjectileQueue();
   drawSlingshot();
@@ -4923,6 +4954,7 @@ startButton.addEventListener("click", () => {
 gameSelectBackButton?.addEventListener("click", showStartScreen);
 selectSlingshotGame?.addEventListener("click", () => {
   window.PTIArcade?.trackEvent("game_started", { gameId: "printYardSling" });
+  requestSlingshotFullscreen();
   showLevelSelect();
 });
 selectDeliveryGame?.addEventListener("click", () => {
@@ -4932,9 +4964,13 @@ selectDeliveryGame?.addEventListener("click", () => {
 restartButton.addEventListener("click", startGame);
 resultMainMenuButton?.addEventListener("click", showStartScreen);
 failedRetryButton?.addEventListener("click", restartCurrentLevel);
-failedLevelSelectButton?.addEventListener("click", showLevelSelect);
+failedLevelSelectButton?.addEventListener("click", () => {
+  requestSlingshotFullscreen();
+  showLevelSelect();
+});
 failedMainMenuButton?.addEventListener("click", showStartScreen);
 gateButton.addEventListener("click", () => {
+  requestSlingshotFullscreen();
   if (gateButton.dataset.action === "submit") {
     endGame("All levels cleared. Submit your Prize Points to the monthly leaderboard.", { completed: true });
     return;
@@ -4942,7 +4978,10 @@ gateButton.addEventListener("click", () => {
   startNextLevel();
 });
 gateRetryButton?.addEventListener("click", restartCurrentLevel);
-gateLevelSelectButton?.addEventListener("click", showLevelSelect);
+gateLevelSelectButton?.addEventListener("click", () => {
+  requestSlingshotFullscreen();
+  showLevelSelect();
+});
 
 levelBackButton.addEventListener("click", showGameSelect);
 
@@ -4951,6 +4990,7 @@ levelSelectGrid.addEventListener("click", (event) => {
   if (!card || card.classList.contains("locked") || card.getAttribute("aria-disabled") === "true") return;
   const levelIndex = Number(card.dataset.levelIndex);
   if (!Number.isInteger(levelIndex)) return;
+  requestSlingshotFullscreen();
   startGame({ levelIndex });
 });
 
