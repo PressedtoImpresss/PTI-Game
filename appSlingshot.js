@@ -642,6 +642,7 @@ let worldW = 1500;
 let cameraX = 0;
 let cameraTargetX = 0;
 let groundY = 470;
+let lastDrawnLevelBackgroundKey = null;
 let anchor = { x: 150, y: 360 };
 let currentProjectile = null;
 let launchedProjectile = null;
@@ -1213,7 +1214,9 @@ function setupCanvasSize() {
   if (mobile) {
     const hudH = document.querySelector(".hud-strip")?.offsetHeight || 58;
     const minCanvasHeight = landscapePhone ? 220 : 420;
-    const targetHeight = Math.max(minCanvasHeight, window.innerHeight - hudH);
+    const targetHeight = landscapePhone
+      ? Math.max(minCanvasHeight, window.innerHeight)
+      : Math.max(minCanvasHeight, window.innerHeight - hudH);
     canvas.style.width = window.innerWidth + "px";
     canvas.style.height = targetHeight + "px";
     root.style.setProperty("--mobile-canvas-width", window.innerWidth + "px");
@@ -3988,11 +3991,27 @@ function drawBackgroundCover(x, y, w, h) {
   const levelNumber = state.levelIndex + 1;
   const levelKey = backgroundKeyForLevel(levelNumber);
   if (levelKey !== "background" && !assets[levelKey]) loadAssetByKey(levelKey);
-  const background = assets[levelKey] || assets.background;
   if (levelKey !== "background") {
-    drawCover(background, x, y, w, h);
+    if (assets[levelKey]) {
+      drawCover(assets[levelKey], x, y, w, h);
+      lastDrawnLevelBackgroundKey = levelKey;
+      return;
+    }
+    if (lastDrawnLevelBackgroundKey && lastDrawnLevelBackgroundKey !== "background" && assets[lastDrawnLevelBackgroundKey]) {
+      drawCover(assets[lastDrawnLevelBackgroundKey], x, y, w, h);
+      return;
+    }
+    const fallback = ctx.createLinearGradient(0, y, 0, y + h);
+    fallback.addColorStop(0, "#94dff5");
+    fallback.addColorStop(0.52, "#7ccf87");
+    fallback.addColorStop(1, "#416f37");
+    ctx.fillStyle = fallback;
+    ctx.fillRect(x, y, w, h);
     return;
   }
+  const background = assets.background;
+  if (!background) return;
+  lastDrawnLevelBackgroundKey = "background";
   ctx.save();
   ctx.translate(x + w, y + h);
   ctx.rotate(Math.PI);
