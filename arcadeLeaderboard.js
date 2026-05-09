@@ -19,7 +19,7 @@
     inkRunRush: {
       id: "inkRunRush",
       name: "Ink Run Rush",
-      difficulty: "Coming Soon",
+      difficulty: "Medium",
       maxRawScore: 500000,
       rawToPrizePoints(rawScore) {
         return Math.floor(rawScore / 10);

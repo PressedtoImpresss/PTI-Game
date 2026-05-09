@@ -4626,6 +4626,10 @@ canvas {
   --game-card-art: url("./Assets/slingshot/helicopter/background2.png");
 }
 
+#select-ink-run-game {
+  --game-card-art: url("./Surfers/assets/stage2.png");
+}
+
 .arcade-game-card.coming-soon {
   --game-card-art: url("./Assets/slingshot/background-level-18.png");
 }

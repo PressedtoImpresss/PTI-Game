@@ -201,6 +201,7 @@ const gameSelectOverlay = document.getElementById("game-select-overlay");
 const gameSelectBackButton = document.getElementById("game-select-back-button");
 const selectSlingshotGame = document.getElementById("select-slingshot-game");
 const selectDeliveryGame = document.getElementById("select-delivery-game");
+const selectInkRunGame = document.getElementById("select-ink-run-game");
 const levelSelectOverlay = document.getElementById("level-select-overlay");
 const levelSelectGrid = document.getElementById("level-select-grid");
 const levelBackButton = document.getElementById("level-back-button");
@@ -5019,6 +5020,10 @@ selectSlingshotGame?.addEventListener("click", () => {
 selectDeliveryGame?.addEventListener("click", () => {
   window.PTIArcade?.trackEvent("game_started", { gameId: "inkFlightRush" });
   window.location.href = "./cave-flight.html";
+});
+selectInkRunGame?.addEventListener("click", () => {
+  window.PTIArcade?.trackEvent("game_started", { gameId: "inkRunRush" });
+  window.location.href = "./Surfers/index.html";
 });
 restartButton.addEventListener("click", startGame);
 resultMainMenuButton?.addEventListener("click", showStartScreen);
