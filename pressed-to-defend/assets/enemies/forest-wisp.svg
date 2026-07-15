@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="92" viewBox="0 0 80 92">
+  <defs>
+    <radialGradient id="aura">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/>
+      <stop offset=".28" stop-color="#bafff3" stop-opacity=".9"/>
+      <stop offset=".62" stop-color="#43d8cb" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#138d91" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tail" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8cf5e8" stop-opacity=".88"/>
+      <stop offset="1" stop-color="#237b83" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <path d="M40 38C18 49 20 68 8 84c17-7 26-15 31-27 4 14 13 21 28 28-8-19-8-34-27-47z" fill="url(#tail)"/>
+  <circle cx="40" cy="34" r="31" fill="url(#aura)"/>
+  <circle cx="40" cy="34" r="17" fill="#52ded2" stroke="#d8fff8" stroke-width="2"/>
+  <path d="M40 19l11 15-11 16-11-16z" fill="#eafffb" stroke="#168f8b" stroke-width="2"/>
+  <path d="M24 27c-8 6-8 15 0 21M56 23c10 7 11 18 1 26" fill="none" stroke="#b5fff5" stroke-width="2.4" stroke-linecap="round" opacity=".78"/>
+  <circle cx="19" cy="38" r="3" fill="#d7fff8" opacity=".82"/>
+  <circle cx="62" cy="31" r="2.5" fill="#86f5e8" opacity=".9"/>
+  <circle cx="55" cy="56" r="2" fill="#d7fff8" opacity=".72"/>
+</svg>
+

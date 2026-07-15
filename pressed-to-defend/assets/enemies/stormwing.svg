@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Stormwing flying enemy">
+  <defs>
+    <linearGradient id="stormWing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9d0ff"/>
+      <stop offset="0.38" stop-color="#7959ce"/>
+      <stop offset="1" stop-color="#251752"/>
+    </linearGradient>
+    <linearGradient id="armor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d7e7ec"/>
+      <stop offset="0.32" stop-color="#66758f"/>
+      <stop offset="1" stop-color="#24253e"/>
+    </linearGradient>
+    <radialGradient id="stormCore">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.32" stop-color="#8cefff"/>
+      <stop offset="0.7" stop-color="#8465ff"/>
+      <stop offset="1" stop-color="#3e1e92"/>
+    </radialGradient>
+    <filter id="shadow" x="-35%" y="-35%" width="170%" height="200%">
+      <feDropShadow dx="0" dy="22" stdDeviation="14" flood-color="#080319" flood-opacity="0.84"/>
+    </filter>
+    <filter id="glow" x="-90%" y="-90%" width="280%" height="280%">
+      <feGaussianBlur stdDeviation="9" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="M236 262C179 180 91 139 25 168c36 25 58 50 69 79-30-7-55-2-76 15 61 36 126 58 219 55z" fill="url(#stormWing)" stroke="#160d38" stroke-width="14" stroke-linejoin="round"/>
+    <path d="M276 262c57-82 145-123 211-94-36 25-58 50-69 79 30-7 55-2 76 15-61 36-126 58-219 55z" fill="url(#stormWing)" stroke="#160d38" stroke-width="14" stroke-linejoin="round"/>
+    <path d="M66 190l66 78 58-51 45 75M446 190l-66 78-58-51-45 75" fill="none" stroke="#bcb0ff" stroke-width="8" opacity="0.58"/>
+    <path d="M104 255l45 39 43-20M408 255l-45 39-43-20" fill="none" stroke="#38206f" stroke-width="12"/>
+    <path d="M217 185l39-74 39 74-18 70h-42z" fill="url(#armor)" stroke="#171530" stroke-width="12"/>
+    <path d="M210 248c13-44 79-44 92 0l-15 128c-5 39-57 39-62 0z" fill="url(#armor)" stroke="#171530" stroke-width="13"/>
+    <path d="M226 365l30 86 30-86" fill="#39236f" stroke="#171530" stroke-width="12"/>
+    <path d="M229 397l-49 37 64-9M283 397l49 37-64-9" fill="url(#stormWing)" stroke="#171530" stroke-width="10" stroke-linejoin="round"/>
+    <circle cx="256" cy="265" r="49" fill="url(#stormCore)" stroke="#d8f9ff" stroke-width="8" filter="url(#glow)"/>
+    <path d="M228 264l21 7-13 27 48-47-26-4 17-31z" fill="#ffffff" opacity="0.95"/>
+    <path d="M225 181l-33-35M287 181l33-35" stroke="#9aefff" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="190" cy="143" r="8" fill="#c9f7ff"/>
+    <circle cx="322" cy="143" r="8" fill="#c9f7ff"/>
+  </g>
+</svg>
+

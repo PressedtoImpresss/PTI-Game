@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/webp" href="/pressed-to-defend/assets/brand/pressed-to-defend-logo.webp" />
+    <title>Pressed to Defend</title>
+    <script type="module" crossorigin src="/pressed-to-defend/assets/index-u74nrVo8.js"></script>
+    <link rel="stylesheet" crossorigin href="/pressed-to-defend/assets/index-CBhsPa2d.css">
+  </head>
+  <body>
+    <main class="arcade-shell" data-testid="game-shell">
+      <section id="title-screen" class="title-screen" aria-label="Title screen">
+        <div class="title-lockup">
+          <img class="title-logo" src="/pressed-to-defend/assets/brand/pressed-to-defend-logo.webp" alt="Pressed to Defend tower defense emblem" />
+          <div class="title-copy">
+            <p class="title-kicker">A Pressed to Impress Arcade Game</p>
+            <h1><span>Pressed to</span><span>Defend</span></h1>
+            <p class="title-tagline">Build towers, hold the line, defend the realm.</p>
+          </div>
+          <div class="title-actions">
+            <button id="play-game" class="primary-action" type="button" aria-busy="true" disabled>Loading...</button>
+            <button id="title-leaderboard" class="small-action" type="button">Leaderboard</button>
+          </div>
+          <p id="admin-title-badge" class="admin-title-badge" hidden>Private local test mode</p>
+        </div>
+      </section>
+
+      <section id="outcome-screen" class="outcome-screen" aria-labelledby="outcome-title" hidden>
+        <div class="outcome-card">
+          <p id="outcome-kicker">Victory</p>
+          <h2 id="outcome-title">Congratulations, you've won.</h2>
+          <p id="outcome-summary">You held every wave and kept the line standing.</p>
+          <dl class="outcome-stats" aria-label="Final run stats">
+            <div>
+              <dt>Score</dt>
+              <dd id="outcome-score">0</dd>
+            </div>
+            <div>
+              <dt>Wave</dt>
+              <dd id="outcome-wave">50/50</dd>
+            </div>
+            <div>
+              <dt>Lives</dt>
+              <dd id="outcome-lives">20</dd>
+            </div>
+          </dl>
+          <form id="score-submit-form" class="score-submit" autocomplete="off">
+            <label id="score-submit-label" for="score-player-name">Submit your score</label>
+            <div>
+              <input id="score-player-name" name="playerName" type="text" minlength="2" maxlength="20" placeholder="Name" autocomplete="nickname" required />
+              <input id="score-player-email" name="email" type="email" maxlength="80" placeholder="Email" autocomplete="email" required />
+              <button id="submit-score" class="primary-action" type="submit">Submit Score</button>
+            </div>
+            <p id="score-submit-status" class="score-submit-status" role="status"></p>
+          </form>
+          <div class="outcome-actions">
+            <button id="outcome-leaderboard" class="small-action" type="button">Leaderboard</button>
+            <button id="outcome-restart" class="small-action" type="button">Play Again</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="live-score-screen" class="score-dialog-screen" aria-labelledby="live-score-title" hidden>
+        <div class="score-dialog-card" role="dialog" aria-modal="true">
+          <p class="score-dialog-kicker">Shared Prize Arcade</p>
+          <h2 id="live-score-title">Submit Current Score</h2>
+          <p class="score-dialog-summary">Pressed to Defend</p>
+          <dl class="outcome-stats score-dialog-stats" aria-label="Current run stats">
+            <div>
+              <dt>Score</dt>
+              <dd id="live-score-value">0</dd>
+            </div>
+            <div>
+              <dt>Wave</dt>
+              <dd id="live-score-wave">1/50</dd>
+            </div>
+            <div>
+              <dt>Lives</dt>
+              <dd id="live-score-lives">20</dd>
+            </div>
+          </dl>
+          <form id="live-score-form" class="score-submit live-score-form" autocomplete="off">
+            <label for="live-score-player-name">Submit this run for monthly Prize Points</label>
+            <div>
+              <input id="live-score-player-name" name="playerName" type="text" minlength="2" maxlength="20" placeholder="Name" autocomplete="nickname" required />
+              <input id="live-score-player-email" name="email" type="email" maxlength="80" placeholder="Email" autocomplete="email" required />
+              <button id="live-submit-score" class="primary-action" type="submit">Submit Score</button>
+            </div>
+            <p id="live-score-submit-status" class="score-submit-status" role="status"></p>
+          </form>
+          <div class="score-dialog-actions">
+            <button id="live-score-leaderboard" class="small-action" type="button">Leaderboard</button>
+            <button id="live-score-close" class="small-action" type="button">Back to Game</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="leaderboard-screen" class="leaderboard-screen" aria-labelledby="leaderboard-title" hidden>
+        <div class="leaderboard-card" role="dialog" aria-modal="true">
+          <p class="leaderboard-kicker">Arcade Rankings</p>
+          <h2 id="leaderboard-title">Monthly Top Defenders</h2>
+          <p id="leaderboard-status" role="status">Loading leaderboard...</p>
+          <div class="leaderboard-table" aria-label="Top ten scores">
+            <div class="leaderboard-head" aria-hidden="true">
+              <span>Rank</span>
+              <span>Player</span>
+              <span>Prize Pts</span>
+              <span>Game</span>
+            </div>
+            <ol id="leaderboard-list" class="leaderboard-list"></ol>
+          </div>
+          <div id="leaderboard-player-rank" class="leaderboard-player-rank" hidden>
+            <span>Your Rank</span>
+            <strong id="leaderboard-player-rank-value">#--</strong>
+            <small id="leaderboard-player-rank-detail"></small>
+          </div>
+          <button id="leaderboard-close" class="small-action" type="button">Back</button>
+        </div>
+      </section>
+
+      <section class="hud" aria-label="Game controls">
+        <div class="brand-block" aria-label="Pressed to Impress arcade">
+          <span class="brand-token" aria-hidden="true"></span>
+          <div>
+            <h1>Pressed to Defend</h1>
+            <p>Pressed to Impress Arcade</p>
+          </div>
+        </div>
+
+        <div class="meter-grid" aria-label="Game status">
+          <div><span>Wave</span><strong id="wave">1/50</strong></div>
+          <div><span>Lives</span><strong id="lives">20</strong></div>
+          <div><span>Money</span><strong id="money">$130</strong></div>
+          <div><span>Score</span><strong id="score">0</strong></div>
+        </div>
+
+        <div class="action-row">
+          <button id="start-wave" class="primary-action" type="button">Start Wave</button>
+          <button id="open-score-submit" class="small-action score-action" type="button" aria-haspopup="dialog" hidden>Submit Score</button>
+          <button id="pause-game" class="small-action" type="button" title="Pause game" aria-label="Pause game">Pause</button>
+          <button id="reset-game" class="small-action" type="button" title="Restart game" aria-label="Restart game">Restart</button>
+          <button id="sound-toggle" class="small-action" type="button" title="Sound effects" aria-label="Sound effects on">SFX On</button>
+          <button id="music-toggle" class="small-action" type="button" title="Background music" aria-label="Background music on" aria-pressed="true">Music On</button>
+          <div class="speed-controls" role="group" aria-label="Wave speed">
+            <span>Speed</span>
+            <button class="speed-choice active" type="button" data-speed="1" aria-label="Wave speed 1x" aria-pressed="true">1x</button>
+            <button class="speed-choice" type="button" data-speed="2" aria-label="Wave speed 2x" aria-pressed="false">2x</button>
+            <button class="speed-choice" type="button" data-speed="3" aria-label="Wave speed 3x" aria-pressed="false">3x</button>
+          </div>
+        </div>
+
+        <section id="admin-console" class="admin-console" aria-label="Admin test controls" hidden>
+          <div class="admin-console-head">
+            <strong>Admin Test Lab</strong>
+            <span>Local only</span>
+          </div>
+          <div class="admin-wave-row">
+            <label for="admin-wave-select">Test wave</label>
+            <select id="admin-wave-select" aria-label="Admin test wave"></select>
+            <button id="admin-load-wave" type="button">Load</button>
+          </div>
+          <div class="admin-step-row">
+            <button id="admin-previous-wave" type="button">Previous</button>
+            <button id="admin-next-wave" type="button">Next</button>
+            <button id="admin-restore-lives" type="button">Restore Lives</button>
+          </div>
+          <p><strong>Unlimited gold active.</strong> Admin scores are disabled.</p>
+        </section>
+
+        <section class="incoming" aria-label="Incoming wave preview">
+          <h2>Battle Intel</h2>
+          <p id="incoming-title"></p>
+          <ul id="incoming-list"></ul>
+          <div class="wave-progress" aria-label="Wave progress">
+            <span id="wave-progress-fill"></span>
+          </div>
+          <p id="incoming-warning" hidden></p>
+          <div class="wave-forecast" aria-label="Upcoming wave forecast">
+            <h3>Wave Forecast</h3>
+            <ol id="wave-forecast-list"></ol>
+          </div>
+        </section>
+
+        <p id="message" class="message" role="status">Place a tower on a stone circle, then start the wave.</p>
+      </section>
+
+      <section class="tower-panel" aria-label="Tower controls">
+        <h2 class="armory-title">
+          <span>Armory</span>
+          <small>Build and command</small>
+        </h2>
+        <div class="tower-picker tower-shop" aria-label="Tower shop">
+          <div class="shop-section-label">
+            <span>Defense Towers</span>
+            <small>Build on stone circles</small>
+          </div>
+          <button class="tower-choice active" type="button" data-tower-type="arrow">
+            <img src="/pressed-to-defend/assets/towers/arrow.webp" alt="" />
+            <strong>Arrow</strong>
+            <span>$50</span>
+          </button>
+          <button class="tower-choice" type="button" data-tower-type="fire">
+            <img src="/pressed-to-defend/assets/towers/fire.webp" alt="" />
+            <strong>Fire</strong>
+            <span>$75</span>
+          </button>
+          <button class="tower-choice" type="button" data-tower-type="ice">
+            <img src="/pressed-to-defend/assets/towers/ice.webp" alt="" />
+            <strong>Ice</strong>
+            <span>$90</span>
+          </button>
+          <button class="tower-choice" type="button" data-tower-type="storm">
+            <img src="/pressed-to-defend/assets/towers/storm.webp" alt="" />
+            <strong>Storm</strong>
+            <span>$105</span>
+          </button>
+          <div class="shop-section-label advanced-label">
+            <span>Advanced Towers</span>
+            <small>Specialized firepower</small>
+          </div>
+          <button class="tower-choice advanced-choice" type="button" data-tower-type="ballista">
+            <img src="/pressed-to-defend/assets/towers/ballista.webp" alt="" />
+            <strong>Ballista</strong>
+            <span>$150</span>
+          </button>
+          <button class="tower-choice advanced-choice" type="button" data-tower-type="bombard">
+            <img src="/pressed-to-defend/assets/towers/bombard.webp" alt="" />
+            <strong>Bombard</strong>
+            <span>$250</span>
+          </button>
+          <button class="tower-choice advanced-choice" type="button" data-tower-type="venom">
+            <img src="/pressed-to-defend/assets/towers/venom.webp" alt="" />
+            <strong>Venom</strong>
+            <span>$350</span>
+          </button>
+          <button class="tower-choice advanced-choice" type="button" data-tower-type="arcane">
+            <img src="/pressed-to-defend/assets/towers/arcane.webp" alt="" />
+            <strong>Arcane</strong>
+            <span>$500</span>
+          </button>
+          <div class="shop-section-label anti-air-label">
+            <span>Air Defense</span>
+            <small>Flying targets only</small>
+          </div>
+          <button class="tower-choice anti-air-choice skyguard-choice" type="button" data-tower-type="skyguard">
+            <img src="/pressed-to-defend/assets/towers/skyguard.webp" alt="" />
+            <strong>Skyguard</strong>
+            <span>$300</span>
+          </button>
+          <button class="tower-choice anti-air-choice tempest-choice" type="button" data-tower-type="tempestSpire">
+            <img src="/pressed-to-defend/assets/towers/tempest-spire.webp" alt="" />
+            <strong>Tempest</strong>
+            <span>$425</span>
+          </button>
+          <div class="shop-section-label elite-label">
+            <span>Elite Towers</span>
+            <small>Late-game power</small>
+          </div>
+          <button class="tower-choice god-choice" type="button" data-tower-type="blueGod">
+            <img src="/pressed-to-defend/assets/towers/blue-god.webp" alt="" />
+            <strong>Arcane Archon</strong>
+            <span>$780</span>
+          </button>
+          <button class="tower-choice god-choice" type="button" data-tower-type="redGod">
+            <img src="/pressed-to-defend/assets/towers/red-god.webp" alt="" />
+            <strong>Flameborn Reaver</strong>
+            <span>$850</span>
+          </button>
+          <button class="tower-choice god-choice" type="button" data-tower-type="godTower">
+            <img src="/pressed-to-defend/assets/towers/god-tower.webp" alt="" />
+            <strong>Celestial Spire</strong>
+            <span>$1250</span>
+          </button>
+        </div>
+        <div class="hero-shop" aria-label="Hero tower shop">
+          <h2>Heroes</h2>
+          <div class="tower-picker hero-picker">
+            <button class="tower-choice hero-choice" type="button" data-hero-type="demonReaper">
+              <img src="/pressed-to-defend/assets/heroes/shaman-character.webp" alt="" />
+              <strong>Shaman</strong>
+              <small>Storm/Totem/Spirit</small>
+              <span>$70</span>
+            </button>
+            <button class="tower-choice hero-choice" type="button" data-hero-type="ducksta">
+              <img src="/pressed-to-defend/assets/heroes/rogue-character.webp" alt="" />
+              <strong>Rogue</strong>
+              <small>Blades/Poison/Shadow</small>
+              <span>$70</span>
+            </button>
+            <button class="tower-choice hero-choice" type="button" data-hero-type="garacilla">
+              <img src="/pressed-to-defend/assets/heroes/tauren-character.webp" alt="" />
+              <strong>Druid</strong>
+              <small>Roots/Grove/Wild</small>
+              <span>$70</span>
+            </button>
+            <button class="tower-choice hero-choice" type="button" data-hero-type="onslaught">
+              <img src="/pressed-to-defend/assets/heroes/warlock-character.webp" alt="" />
+              <strong>Warlock</strong>
+              <small>Curse/Flame/Echo</small>
+              <span>$70</span>
+            </button>
+          </div>
+        </div>
+
+        <section class="selection-panel" aria-label="Selection details" hidden>
+          <div class="selection-summary">
+            <div class="selection-portrait" aria-hidden="true">
+              <img id="selection-icon" src="/pressed-to-defend/assets/towers/arrow.webp" alt="" />
+            </div>
+            <div class="selection-heading">
+              <span id="selection-kicker">Tower Intel</span>
+              <strong id="selection-name">Arrow Tower</strong>
+              <small id="selection-role">Sustained DPS</small>
+            </div>
+          </div>
+          <p id="tower-info">Arrow Tower: Sustained DPS. $50, range 178. Place on stone circles.</p>
+          <p id="hero-info" class="hero-inline-info">Press Play, then pick an optional hero.</p>
+          <div id="hero-upgrades" class="hero-upgrade-grid hero-upgrade-inline" aria-label="Hero upgrades" hidden>
+            <button type="button" data-hero-upgrade="a" disabled>Upgrade</button>
+            <button type="button" data-hero-upgrade="b" disabled>Upgrade</button>
+            <button type="button" data-hero-upgrade="c" disabled>Upgrade</button>
+          </div>
+          <p id="placement-hint" class="placement-hint" hidden></p>
+          <div class="target-row" aria-label="Selected tower target priority">
+            <span>Target</span>
+            <button type="button" data-target-mode="first" aria-pressed="false" disabled>First</button>
+            <button type="button" data-target-mode="strong" aria-pressed="false" disabled>Strong</button>
+            <button type="button" data-target-mode="weak" aria-pressed="false" disabled>Weak</button>
+          </div>
+          <div class="upgrade-grid" aria-label="Selected tower upgrades">
+            <button type="button" data-upgrade="power" disabled>Power</button>
+            <button type="button" data-upgrade="range" disabled>Range</button>
+            <button type="button" data-upgrade="speed" disabled>Speed</button>
+            <button class="special-upgrade" type="button" data-upgrade="special" disabled>Special</button>
+            <button id="sell-tower" class="sell-tower" type="button" disabled>Sell</button>
+            <button id="clear-selection" type="button">Clear</button>
+          </div>
+        </section>
+      </section>
+
+      <section class="stage-wrap" aria-label="Game stage">
+        <div class="stage-meter-grid" aria-label="Battlefield status">
+          <div><span>Wave</span><strong data-stage-stat="wave">1/50</strong></div>
+          <div><span>Lives</span><strong data-stage-stat="lives">20</strong></div>
+          <div><span>Money</span><strong data-stage-stat="money">$130</strong></div>
+          <div><span>Score</span><strong data-stage-stat="score">0</strong></div>
+        </div>
+        <div id="game-root">
+          <div id="wave-banner" class="wave-banner" aria-live="polite" hidden>
+            <span id="wave-banner-kicker">Wave Incoming</span>
+            <strong id="wave-banner-title">Wave 1</strong>
+            <span id="wave-banner-detail">Hold the line.</span>
+          </div>
+        </div>
+        <div id="boss-health" class="boss-health" aria-live="polite" hidden>
+          <div class="boss-health-head">
+            <span id="boss-health-name">Crystal Colossus</span>
+            <strong id="boss-health-count">Boss</strong>
+          </div>
+          <div class="boss-health-track" aria-label="Boss health">
+            <span id="boss-health-fill"></span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <audio id="game-music" preload="auto">
+      <source src="/pressed-to-defend/assets/audio/hope-orchestral-battle.ogg" type="audio/ogg" />
+    </audio>
+    <script>
+      if (window.location.hostname === "arcade.pressedtoimpress.co.nz") {
+        const leaderboardUrl = "https://script.google.com/macros/s/AKfycbwBBaFdetFrzqHDl9T6wJAEsaSihyQF5eXCCc1iwy8Fk2OVEV-Y5HQ1ZuB-HPdQRm1j/exec";
+        window.__PTI_ARCADE_CONFIG__ = {
+          scoreEndpoint: leaderboardUrl,
+          leaderboardEndpoint: leaderboardUrl,
+          boardId: "live-prize-board",
+        };
+      }
+    </script>
+  </body>
+</html>
+

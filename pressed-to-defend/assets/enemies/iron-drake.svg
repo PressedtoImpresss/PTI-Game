@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Iron Drake flying enemy">
+  <defs>
+    <linearGradient id="redWing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffb05b"/>
+      <stop offset="0.35" stop-color="#b83c28"/>
+      <stop offset="1" stop-color="#481517"/>
+    </linearGradient>
+    <linearGradient id="iron" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e4ddd0"/>
+      <stop offset="0.25" stop-color="#827d79"/>
+      <stop offset="0.58" stop-color="#3a3d43"/>
+      <stop offset="1" stop-color="#171a20"/>
+    </linearGradient>
+    <linearGradient id="bronze" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe09a"/>
+      <stop offset="0.35" stop-color="#c2813b"/>
+      <stop offset="1" stop-color="#5a2c18"/>
+    </linearGradient>
+    <filter id="shadow" x="-35%" y="-35%" width="170%" height="200%">
+      <feDropShadow dx="0" dy="24" stdDeviation="15" flood-color="#090708" flood-opacity="0.88"/>
+    </filter>
+    <filter id="fireGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="M219 267C168 188 94 145 25 151c39 34 63 67 72 101-30-4-56 5-74 28 70 31 131 44 205 31z" fill="url(#redWing)" stroke="#351116" stroke-width="16" stroke-linejoin="round"/>
+    <path d="M293 267c51-79 125-122 194-116-39 34-63 67-72 101 30-4 56 5 74 28-70 31-131 44-205 31z" fill="url(#redWing)" stroke="#351116" stroke-width="16" stroke-linejoin="round"/>
+    <path d="M70 178l71 83 55-42 30 69M442 178l-71 83-55-42-30 69" fill="none" stroke="#ffcb77" stroke-width="9" opacity="0.48"/>
+    <path d="M198 189l21-81 37 34 37-34 21 81-21 51h-74z" fill="url(#iron)" stroke="#17191d" stroke-width="14"/>
+    <path d="M196 231c15-49 105-49 120 0l-16 145c-7 56-81 56-88 0z" fill="url(#iron)" stroke="#17191d" stroke-width="15"/>
+    <path d="M211 263h90M207 310h98M211 355h90" stroke="url(#bronze)" stroke-width="13"/>
+    <path d="M220 377l36 93 36-93" fill="url(#iron)" stroke="#17191d" stroke-width="14"/>
+    <path d="M223 416l-61 24 70 11M289 416l61 24-70 11" fill="url(#redWing)" stroke="#351116" stroke-width="11" stroke-linejoin="round"/>
+    <path d="M220 169l-45-48M292 169l45-48" stroke="url(#bronze)" stroke-width="13" stroke-linecap="round"/>
+    <path d="M204 211l-33 18 35 14M308 211l33 18-35 14" fill="url(#bronze)" stroke="#351d14" stroke-width="8"/>
+    <circle cx="232" cy="207" r="8" fill="#ff6a3d" filter="url(#fireGlow)"/>
+    <circle cx="280" cy="207" r="8" fill="#ff6a3d" filter="url(#fireGlow)"/>
+    <path d="M238 237l18 12 18-12-18 27z" fill="#ffb54c" filter="url(#fireGlow)"/>
+  </g>
+</svg>
+

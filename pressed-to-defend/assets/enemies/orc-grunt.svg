@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="112" viewBox="0 0 96 112">
+  <defs>
+    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9bc45b"/>
+      <stop offset="0.55" stop-color="#5f8d38"/>
+      <stop offset="1" stop-color="#365727"/>
+    </linearGradient>
+    <linearGradient id="leather" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#765036"/>
+      <stop offset="1" stop-color="#2d211b"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e6e4d8"/>
+      <stop offset="0.4" stop-color="#8e989c"/>
+      <stop offset="1" stop-color="#343b40"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#172015" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <path fill="#26231f" d="M25 88l18-3 2 15-24 2zM51 85l19 3 4 14-25-2z"/>
+    <path fill="#4b3224" d="M27 68q2-22 21-25 19 3 21 25l-8 23H35z"/>
+    <path fill="url(#leather)" d="M31 56q17-14 34 0l-2 28H33z"/>
+    <path fill="#b88b4d" d="M32 75h32v7H32z"/>
+    <path fill="#33251c" d="M44 74h9v10h-9z"/>
+    <path fill="url(#skin)" d="M27 58q-12 5-13 20 5 7 12 1l9-16zM69 58q11 3 14 14-2 8-10 6l-12-15z"/>
+    <path fill="url(#steel)" d="M61 50q11-2 17 8l-11 12-12-9z"/>
+    <path fill="url(#skin)" d="M25 25l-15 7 15 8q-4 16 7 25h32q11-9 7-25l15-8-15-7q-9-14-23-14T25 25z"/>
+    <path fill="#507b31" d="M25 41q23 15 46 0l-5 23H30z" opacity=".8"/>
+    <path fill="#26321f" d="M25 26q4-19 23-20 20 1 24 20l-10-7-14 5-14-5z"/>
+    <path fill="#c4aa70" d="M42 63l6-8 6 8-6 5z"/>
+    <path d="M30 39l13 4M66 39l-13 4" fill="none" stroke="#243219" stroke-width="4"/>
+    <circle cx="38" cy="43" r="2.4" fill="#ffc94b"/>
+    <circle cx="58" cy="43" r="2.4" fill="#ffc94b"/>
+    <path fill="#f0dfbd" d="M34 58l8-2-5 12zM62 58l-8-2 5 12z"/>
+    <path d="M41 54q7 4 14 0" fill="none" stroke="#26321f" stroke-width="3"/>
+    <path d="M76 73L88 31" fill="none" stroke="#6e4729" stroke-width="5"/>
+    <path fill="url(#steel)" d="M88 31l-21 4 8-16 16 2z"/>
+    <path d="M82 29l-10 3" fill="none" stroke="#f5f0de" stroke-width="1.4"/>
+    <circle cx="77" cy="73" r="6" fill="url(#skin)"/>
+    <path d="M36 60l23 19" fill="none" stroke="#2c2018" stroke-width="4"/>
+  </g>
+</svg>
+
